@@ -1,3 +1,10 @@
+/*** Custom Eco-Friendly Theme Colors ***/
+:root {
+    --bs-primary: #2d6a4f; /* สีเขียวเข้มธรรมชาติ (Eco Dark Green) */
+    --bs-secondary: #81b29a; /* สีเขียวอ่อน/เซจกรีน (Sage Green) สำหรับความรู้สึกปลอดภัย ไร้สารเคมี */
+    --bs-light: #f4f1de; /* สีครีมอ่อนๆ ลดความกระด้างของสีขาว */
+    --bs-dark: #3d405b; /* สีน้ำเงินเข้มแทนสีดำ ดูพรีเมียมขึ้น */
+}
 
 /*** Spinner Start ***/
 #spinner {
