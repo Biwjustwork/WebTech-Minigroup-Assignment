@@ -1,0 +1,61 @@
+---
+config:
+  theme: redux
+---
+sequenceDiagram
+    autonumber
+    participant User as User (Client)
+    participant UI as Frontend (UI/State)
+    participant LS as LocalStorage (Persistence)
+    participant Route as Backend Route (/api/auth)
+    participant Controller as Auth Controller
+    participant Service as Auth Service (JWT/Bcrypt)
+    participant DB as Database (SQL)
+
+    Note over User, DB: ขั้นตอนการ Login และการจัดการ Stateless Identity (JWT)
+
+    User->>UI: กรอก Username/Password และกด Login
+    UI->>Route: POST /api/login (Payload: credentials)
+    Route->>Controller: login(req, res)
+    Controller->>Service: authenticateUser(username, password)
+    Service->>DB: SELECT * FROM users WHERE username = ?
+    Note right of DB: Parameterized Query เพื่อป้องกัน SQL Injection
+
+    alt User Found & Password Matches (Bcrypt Compare)
+        DB-->>Service: User Data (Hashed Password)
+        Service->>Service: Verify Password (Salted Hashing)
+        Service->>Service: Generate JWT (Sign with Secret)
+        Service-->>Controller: Login Success (User info + JWT)
+        Controller-->>Route: JSON Response (Status 200, Token)
+        Route-->>UI: Authentication Success
+        UI->>LS: บันทึก Token (Serialization)
+        Note right of LS: Persistence สำหรับการทำ Hydration Logic
+        UI->>User: แสดงสถานะ "Logged In" และปลดล็อกส่วนลด 20%
+    
+    else User Not Found / Wrong Password
+        Service-->>Controller: Authentication Failed
+        Controller-->>Route: JSON Error Response (Status 401)
+        Note right of Controller: Graceful Error Handling: ไม่บอกว่าผิดที่ User หรือ Password
+        Route-->>UI: Error Message ("Invalid Credentials")
+        UI->>User: แสดง UI "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+    end
+
+    Note over User, DB: ขั้นตอนการตรวจสอบสิทธิ์ (Auth Middleware) สำหรับ Subscription Discount
+
+    User->>UI: เลือกสินค้าแบบ "Subscription" ($12)
+    UI->>LS: ดึง JWT Token (Hydration Logic)
+    alt Token Exists
+        UI->>Route: GET /api/verify-session (Header: Bearer Token)
+        Route->>Controller: checkAuthStatus()
+        
+        alt Token Valid
+            Controller-->>UI: Status: Authorized (User info)
+            UI->>User: แสดงราคาลด 20% สำเร็จ (Architecture of Trust)
+        else Token Expired / Invalid
+            Controller-->>UI: Status 401 (Unauthorized)
+            UI->>LS: ลบ Token (Clear State)
+            UI->>User: แจ้งเตือน "Session หมดอายุ" และนำกลับไปหน้า Login
+        end
+    else No Token Found
+        UI->>User: แสดงราคา $15 (One-time) พร้อมแนะนำให้ Login เพื่อรับส่วนลด
+    end

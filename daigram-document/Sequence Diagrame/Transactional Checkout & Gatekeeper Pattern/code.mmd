@@ -1,0 +1,63 @@
+---
+config:
+  theme: redux
+---
+sequenceDiagram
+    autonumber
+    participant User as User (Client)
+    participant UI as Frontend (UI/State)
+    participant Auth as Auth Middleware (JWT)
+    participant Route as Checkout Route (POST)
+    participant Controller as Checkout Controller
+    participant Service as OrderService (Gatekeeper)
+    participant DB as Database (SQL)
+
+    Note over User, DB: ขั้นตอนการเช็คเอาต์ (Transactional Checkout) พร้อมการตรวจสอบ Gatekeeper
+
+    User->>UI: กดปุ่ม "Place Order" (สั่งซื้อ)
+    UI->>Route: POST /api/checkout (Payload: Cart Items, OrderType)
+    Note right of UI: OrderType: 'one-time' หรือ 'recurring'
+
+    Route->>Auth: ตรวจสอบ Token (Identify User)
+    alt Token Valid (User Logged In)
+        Auth-->>Route: User Identity (id, name)
+    else Token Invalid / Missing
+        Auth-->>Route: Identity: Guest / Null
+    end
+
+    Route->>Controller: createOrder(req, res)
+    Controller->>Service: processCheckout(cartItems, orderType, userId)
+
+    rect rgb(240, 240, 240)
+        Note over Service, DB: The Gatekeeper Pattern: เริ่มกระบวนการตรวจสอบ
+        
+        Service->>DB: SELECT price FROM products WHERE id IN (...)
+        DB-->>Service: ราคาฐานจาก Database ($15)
+        
+        Note right of Service: Business Logic: ห้ามเชื่อราคาที่ส่งมาจากหน้าบ้าน
+        
+        alt is Recurring AND userId is NOT NULL
+            Service->>Service: คำนวณส่วนลด 20% ($15 -> $12)
+            Note right of Service: เงื่อนไข: ต้องเป็น Recurring และ Logged In เท่านั้น
+        else 
+            Service->>Service: ใช้ราคาปกติ ($15)
+        end
+
+        rect rgb(200, 220, 255)
+            Note over Service, DB: Atomic Transaction (เริ่มบันทึกข้อมูล)
+            Service->>DB: INSERT INTO orders (user_id, total, type, status)
+            Service->>DB: INSERT INTO order_items (order_id, product_id, final_price)
+            
+            alt Transaction Success
+                DB-->>Service: Order ID & Success
+                Service-->>Controller: Checkout Complete
+                Controller-->>Route: JSON Success (201 Created)
+                Route-->>UI: แสดงหน้า "ขอบคุณที่สั่งซื้อ" (Success UI)
+            else Transaction Failed (e.g. Database Error)
+                DB-->>Service: Rollback Transaction
+                Service-->>Controller: Error (Processing Failed)
+                Controller-->>Route: JSON Error (500)
+                Route-->>UI: แสดงข้อผิดพลาด "ไม่สามารถสั่งซื้อได้ โปรดลองอีกครั้ง"
+            end
+        end
+    end

@@ -1,0 +1,45 @@
+---
+config:
+  theme: redux
+---
+sequenceDiagram
+    autonumber
+    participant User as User (Browser)
+    participant Frontend as Frontend (UI/State)
+    participant Route as Backend Route (/api/products)
+    participant Controller as Product Controller
+    participant Service as Product Service
+    participant DB as Database (SQL)
+
+    Note over User, DB: ขั้นตอนการโหลดหน้า Catalog พร้อม Error Handling
+
+    User->>Frontend: เปิดหน้าเว็บไซต์ (Access Catalog)
+    Frontend->>Route: GET /api/products
+    Route->>Controller: listProducts(req, res)
+    rect rgb(245, 250, 200)
+        Note over Controller, DB: Business Logic & Database Interaction
+        Controller->>Service: getAllProducts()
+        
+        alt Database Connection Success
+            Service->>DB: SELECT * FROM products
+            DB-->>Service: รายการสินค้า (id, name, base_price)
+            Service-->>Controller: Product Objects
+            Controller-->>Route: JSON Response (Status 200)
+            Route-->>Frontend: List of Products JSON
+            
+            Note over Frontend: logic: แยกการแสดงราคา $15 (One-time) <br/>และ $12 (Subscription)
+            Frontend->>User: แสดง UI สินค้า (Dynamic Render)
+
+        else Database Connection Failed / Query Error
+            Service-->>Controller: Throw DatabaseError
+            Controller-->>Route: JSON Error Response (Status 500)
+            Note right of Controller: Graceful Error Handling: <br/>ซ่อน Stack Trace จาก User
+            Route-->>Frontend: Error Message (e.g., "Unable to load products")
+            Frontend->>User: แสดง UI "ขออภัย ระบบขัดข้องชั่วคราว" (Friendly UI)
+        end
+    end
+
+    alt Network Error / API Timeout
+        Route--x Frontend: Connection Refused / Timeout
+        Frontend->>User: แสดง UI "โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต"
+    end

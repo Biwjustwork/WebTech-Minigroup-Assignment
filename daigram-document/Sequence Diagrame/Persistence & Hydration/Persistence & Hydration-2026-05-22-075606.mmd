@@ -1,0 +1,54 @@
+---
+config:
+  theme: redux
+---
+sequenceDiagram
+    autonumber
+    participant User as User (Client)
+    participant UI as Frontend UI (App Startup)
+    participant State as Global State (Cart/Auth)
+    participant LS as LocalStorage (Persistence)
+    participant API as Backend API (Validation)
+
+    Note over User, LS: Phase 1: Hydration Logic (เมื่อโหลดหน้าเว็บใหม่)
+
+    User->>UI: เปิดหน้าเว็บ หรือ Refresh หน้าจอ
+    UI->>LS: ตรวจสอบข้อมูลเดิม (getItem)
+    alt มีข้อมูลใน LocalStorage (Persistence Found)
+        LS-->>UI: ข้อมูลแบบ Serialized (JSON String)
+        
+        rect rgb(240, 240, 240)
+            Note over UI: Serialization & Sanitization
+            UI->>UI: ทำการ Deserialization (JSON.parse)
+            
+            alt ข้อมูลถูกต้อง (Valid Format)
+                UI->>State: อัปเดต Global State (Hydrate)
+                Note right of State: Single Source of Truth
+                UI->>User: แสดงสถานะล่าสุด (เช่น สินค้าในตะกร้า/สถานะ Login)
+            else ข้อมูลเสียหาย (Corrupted/Invalid)
+                UI->>LS: ล้างข้อมูล (removeItem)
+                UI->>State: ตั้งค่าเป็น Initial State (Empty)
+                UI->>User: แสดงหน้าเริ่มต้น (Default UI)
+            end
+        end
+        
+    else ไม่มีข้อมูลใน LocalStorage (Fresh Start)
+        LS-->>UI: null
+        UI->>State: กำหนดค่าเริ่มต้น (Default State)
+        UI->>User: แสดงหน้าเว็บปกติ
+    end
+
+    Note over User, API: Phase 2: Persistence (เมื่อมีการเปลี่ยนแปลงข้อมูล)
+
+    User->>UI: เลือก "Subscription" หรือ "Add to Cart"
+    UI->>State: อัปเดต Global State
+    rect rgb(230, 255, 230)
+        Note over State, LS: Persistence Logic
+        State->>UI: State Updated
+        UI->>UI: ทำการ Serialization (JSON.stringify)
+        UI->>LS: บันทึกลง LocalStorage (setItem)
+    end
+
+    Note over UI, API: Phase 3: The Architecture of Trust (Re-validation)
+    UI->>API: ส่งข้อมูลที่ Hydrate มาตรวจสอบความถูกต้อง (Token/Price)
+    API-->>UI: ยืนยันความถูกต้องของข้อมูล
