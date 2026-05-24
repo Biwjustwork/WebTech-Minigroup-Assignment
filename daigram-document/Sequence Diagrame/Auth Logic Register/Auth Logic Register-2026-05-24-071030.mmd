@@ -1,0 +1,55 @@
+---
+config:
+  theme: redux
+---
+sequenceDiagram
+    autonumber
+    participant User as User (Client)
+    participant UI as Frontend (UI/State)
+    participant Route as Backend Route (POST /api/register)
+    participant Controller as Auth Controller
+    participant Service as Auth Service (Logic/Security)
+    participant DB as Database (SQL)
+
+    Note over User, DB: ขั้นตอนการลงทะเบียน (Registration) พร้อมระบบความปลอดภัยสูงสุด
+
+    User->>UI: กรอกข้อมูล (Username, Email, Password)
+    UI->>UI: Client-Side Validation (เช่น รูปแบบ Email, ความยาว Password)
+    UI->>Route: POST /api/register (Payload: credentials)
+    Route->>Controller: handleRegister(req, res)
+    rect rgb(240, 240, 240)
+        Note over Controller, Service: Server-Side Validation & Sanitization
+        Controller->>Service: validateAndRegister(userData)
+        
+        alt ข้อมูลไม่ถูกต้อง (เช่น Email ซ้ำ หรือ รูปแบบผิด)
+            Service-->>Controller: Throw Validation Error
+            Controller-->>Route: JSON Error Response (Status 400/409)
+            Route-->>UI: Error Message ("Email already in use")
+            UI->>User: แสดงข้อความแจ้งเตือนที่หน้า UI
+        else ข้อมูลผ่านการตรวจสอบ
+            Note over Service: The Architecture of Trust
+            Service->>Service: ทำ Salted Hashing (bcrypt.hash)
+            Note right of Service: เปลี่ยน Plain-text เป็น Hash String เพื่อความปลอดภัย
+            
+            rect rgb(200, 220, 255)
+                Note over Service, DB: Database Persistence
+                Service->>DB: INSERT INTO users (username, email, password_hash)
+                Note right of DB: ใช้ Parameterized Queries (?) ป้องกัน SQL Injection
+                
+                alt บันทึกสำเร็จ
+                    DB-->>Service: Success Response
+                    Service-->>Controller: User Created
+                    Controller-->>Route: JSON Success (Status 201)
+                    Route-->>UI: Registration Success
+                    UI->>User: แสดงความยินดีและให้นำทางไปหน้า Login
+                else ระบบขัดข้อง (Database Down)
+                    DB-->>Service: SQL Error
+                    Service-->>Controller: Throw DatabaseError
+                    Controller-->>Route: JSON Error Response (Status 500)
+                    Note right of Controller: Graceful Error Handling: ซ่อนรายละเอียดระบบ
+                    Route-->>UI: Error Message ("System busy, try again later")
+                    UI->>User: แสดงข้อความแจ้งเตือน "ระบบขัดข้อง"
+                end
+            end
+        end
+    end
