@@ -502,3 +502,48 @@
 }
 /*** Footer End ***/
 
+/* =========================================
+   Product Card UI & Hover Effects
+   ========================================= */
+
+/* 1. เส้นขอบสีเขียวตรงภาพสินค้า */
+.product-card .fruite-img img {
+    /* ใช้สี #198754 (Success Green) ตามมาตรฐานของ Bootstrap 5 เพื่อให้คุมโทนกับปุ่ม */
+    border: 3px solid #198754; 
+    
+    /* หากต้องการให้เส้นขอบด้านบนโค้งมนตามกล่อง ให้ใส่ border-radius เพิ่ม */
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    
+    /* ป้องกันขอบล่างซ้อนกับเส้นขอบของ Card (ถ้ามี) */
+    border-bottom: none; 
+}
+
+/* 2. เตรียมความพร้อมของกล่องสินค้าสำหรับการทำ Animation */
+.product-card {
+    /* ใช้ transition เพื่อให้การลอยและการเกิดเงาดูนุ่มนวล (Smooth) ไม่กระตุก */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    background-color: #ffffff; /* ป้องกันพื้นหลังโปร่งใสเวลาลอย */
+}
+
+/* 3. Function (CSS Pseudo-class) เมื่อเมาส์มาสัมผัสกล่อง (Hover) */
+.product-card:hover {
+    /* ทำให้กล่องลอยขึ้นในแกน Y เป็นระยะ 10px */
+    transform: translateY(-10px); 
+    
+    /* เพิ่มเงาขนาดใหญ่ด้านใต้กล่อง เพื่อหลอกตาว่ากล่องลอยหลุดจากพื้น */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); 
+    
+    /* ดัน z-index ขึ้นเพื่อให้กล่องที่ลอยไม่โดนกล่องอื่นรอบๆ บัง */
+    z-index: 2; 
+}
+
+/* (Optional) เพิ่มลูกเล่นให้ปุ่ม Add to Cart ด้านในเปลี่ยนสีเวลากล่องโดน Hover */
+.product-card:hover .add-to-cart-btn {
+    background-color: #198754;
+    color: #ffffff !important;
+}
+.product-card:hover .add-to-cart-btn i {
+    color: #ffffff !important;
+}
+
