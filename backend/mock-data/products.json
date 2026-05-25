@@ -5,8 +5,7 @@
     "category": "Eco-Friendly",
     "image": "img/Eco-Friendly All-Purpose Cleaner.jpg",
     "description": "Natural glass cleaner free from harmful chemicals",
-    "priceOneTime": 15.00,
-    "priceSubscribe": 12.00
+    "price": 15.00
   },
   {
     "id": "prod_02",
@@ -14,8 +13,7 @@
     "category": "Zero Waste",
     "image": "img/Concentrated Cleaning Tablets.jpg",
     "description": "Multipurpose cleaning spray tablets",
-    "priceOneTime": 20.00,
-    "priceSubscribe": 16.00
+    "price": 20.00
   },
   {
     "id": "prod_03",
@@ -23,8 +21,7 @@
     "category": "Plastic Free",
     "image": "img/Dish Washing Soap Block.jpg",
     "description": "Bar dish soap removes grease completely. Zero plastic waste.",
-    "priceOneTime": 10.00,
-    "priceSubscribe": 8.00
+    "price": 10.00
   },
   {
     "id": "prod_04",
@@ -32,8 +29,7 @@
     "category": "Kitchen",
     "image": "img/Concentrated Cleaning Tablets.jpg",
     "description": "Non-toxic cleaning tablets. Just drop in water. Zero plastic waste.",
-    "priceOneTime": 9.99,
-    "priceSubscribe": 7.99
+    "price": 9.99
   },
   {
     "id": "prod_05",
@@ -41,8 +37,7 @@
     "category": "Laundry",
     "image": "img/Laundry Detergent Sheets.jpg",
     "description": "Pre-measured, liquidless laundry detergent. Eco-friendly packaging.",
-    "priceOneTime": 14.99,
-    "priceSubscribe": 11.99
+    "price": 14.99
   },
   {
     "id": "prod_06",
@@ -50,8 +45,7 @@
     "category": "Kitchen",
     "image": "img/Compostable Trash Bags.jpg",
     "description": "100% plant-based trash bags. Fully biodegradable and strong.",
-    "priceOneTime": 8.99,
-    "priceSubscribe": 7.19
+    "price": 8.99
   },
   {
     "id": "prod_07",
@@ -59,8 +53,7 @@
     "category": "Accessories",
     "image": "img/Bamboo Dish Brush.jpg",
     "description": "Replaceable sisal bristle heads with a reusable bamboo handle.",
-    "priceOneTime": 6.50,
-    "priceSubscribe": 5.20
+    "price": 6.50
   },
   {
     "id": "prod_08",
@@ -68,8 +61,7 @@
     "category": "Accessories",
     "image": "img/Swedish Sponge Cloths.jpg",
     "description": "Replaces 17 rolls of paper towels. Washable and compostable.",
-    "priceOneTime": 15.00,
-    "priceSubscribe": 12.75
+    "price": 15.00
   },
   {
     "id": "prod_09",
@@ -77,8 +69,7 @@
     "category": "Bathroom",
     "image": "img/Coconut Coir Toilet Brush Set.jpg",
     "description": "Naturally antibacterial coconut coir bristles. 100% plastic-free.",
-    "priceOneTime": 9.00,
-    "priceSubscribe": 7.20
+    "price": 9.00
   },
   {
     "id": "prod_10",
@@ -86,8 +77,7 @@
     "category": "Zero Waste",
     "image": "img/Castile Soap.png",
     "description": "Concentrated liquid castile soap for face, body, hair, and dishes.",
-    "priceOneTime": 18.00,
-    "priceSubscribe": 14.40
+    "price": 18.00
   },
   {
     "id": "prod_11",
@@ -95,8 +85,7 @@
     "category": "Laundry",
     "image": "img/Wool Dryer Balls.jpg",
     "description": "Reusable organic wool dryer balls to naturally soften clothes and reduce drying time.",
-    "priceOneTime": 16.00,
-    "priceSubscribe": 12.80
+    "price": 16.00
   },
   {
     "id": "prod_12",
@@ -104,8 +93,7 @@
     "category": "Accessories",
     "image": "img/Natural Latex Cleaning Gloves.jpg",
     "description": "Biodegradable, durable cleaning gloves made from FSC-certified natural rubber.",
-    "priceOneTime": 8.50,
-    "priceSubscribe": 6.80
+    "price": 8.50
   },
   {
     "id": "prod_13",
@@ -113,8 +101,7 @@
     "category": "Accessories",
     "image": "img/Recycled Microfiber Cloths.jpg",
     "description": "Made from post-consumer recycled plastic bottles. Perfect for dusting.",
-    "priceOneTime": 12.00,
-    "priceSubscribe": 9.60
+    "price": 12.00
   },
   {
     "id": "prod_14",
@@ -122,8 +109,7 @@
     "category": "Eco-Friendly",
     "image": "img/Citric Acid Powder.jpg",
     "description": "Natural descaler and rust remover. Essential for eco-friendly DIY cleaning.",
-    "priceOneTime": 7.50,
-    "priceSubscribe": 6.00
+    "price": 7.50
   },
   {
     "id": "prod_15",
@@ -131,8 +117,7 @@
     "category": "Eco-Friendly",
     "image": "img/Baking Soda.png",
     "description": "Heavy-duty natural abrasive for stubborn stains and oven cleaning.",
-    "priceOneTime": 5.00,
-    "priceSubscribe": 4.00
+    "price": 5.00
   },
   {
     "id": "prod_16",
@@ -140,8 +125,7 @@
     "category": "Zero Waste",
     "image": "img/Reusable Unpaper Towels.jpg",
     "description": "100% cotton flannel squares that cling together on a roll.",
-    "priceOneTime": 24.00,
-    "priceSubscribe": 19.20
+    "price": 24.00
   },
   {
     "id": "prod_17",
@@ -149,8 +133,7 @@
     "category": "Laundry",
     "image": "img/Soapnuts.jpg",
     "description": "Organic dried berry shells that naturally produce saponin for washing clothes.",
-    "priceOneTime": 14.00,
-    "priceSubscribe": 11.20
+    "price": 14.00
   },
   {
     "id": "prod_18",
@@ -158,8 +141,7 @@
     "category": "Accessories",
     "image": "img/Natural Broom.jpg",
     "description": "Traditional sweeping broom made from 100% natural grass and bamboo.",
-    "priceOneTime": 22.00,
-    "priceSubscribe": 17.60
+    "price": 22.00
   },
   {
     "id": "prod_19",
@@ -167,8 +149,7 @@
     "category": "Laundry",
     "image": "img/Plant-Based Fabric Softener.jpg",
     "description": "Tallow-free fabric softener made with essential oils.",
-    "priceOneTime": 13.50,
-    "priceSubscribe": 10.80
+    "price": 13.50
   },
   {
     "id": "prod_20",
@@ -176,7 +157,6 @@
     "category": "Kitchen",
     "image": "img/White Vinegar.jpg",
     "description": "Double-strength white vinegar for cutting through grime and odors.",
-    "priceOneTime": 6.00,
-    "priceSubscribe": 4.80
+    "price": 6.00
   }
 ]

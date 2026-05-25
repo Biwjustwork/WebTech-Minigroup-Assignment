@@ -538,12 +538,23 @@
     z-index: 2; 
 }
 
-/* (Optional) เพิ่มลูกเล่นให้ปุ่ม Add to Cart ด้านในเปลี่ยนสีเวลากล่องโดน Hover */
-.product-card:hover .add-to-cart-btn {
-    background-color: #198754;
-    color: #ffffff !important;
+/* =========================================
+   Add to Cart Button Hover Effect
+   ========================================= */
+
+/* (Optional) เพิ่ม Transition ให้ปุ่มเปลี่ยนสีแบบนุ่มนวลขึ้น */
+.add-to-cart-btn {
+    transition: all 0.3s ease-in-out;
 }
-.product-card:hover .add-to-cart-btn i {
-    color: #ffffff !important;
+
+/* เมื่อเมาส์ชี้ที่ปุ่ม (Hover) ให้ถมพื้นหลังสีเขียว และเปลี่ยนอักษรเป็นสีขาว */
+.add-to-cart-btn:hover {
+    background-color: #198754 !important; 
+    color: #ffffff !important; 
+}
+
+/* เปลี่ยนสีไอคอนรูปตะกร้าด้านในให้เป็นสีขาวด้วยเวลา Hover */
+.add-to-cart-btn:hover i {
+    color: #ffffff !important; 
 }
 

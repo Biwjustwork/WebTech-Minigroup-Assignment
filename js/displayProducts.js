@@ -53,7 +53,7 @@ function processAndRender() {
         filteredProducts = allProducts.filter(p => {
             const matchCategory = currentCategory === 'All' || p.category === currentCategory;
             const matchKeyword = p.name.toLowerCase().includes(currentKeyword) || p.category.toLowerCase().includes(currentKeyword);
-            const matchPrice = p.priceOneTime <= currentMaxPrice;
+            const matchPrice = p.price <= currentMaxPrice;
             return matchCategory && matchKeyword && matchPrice;
         });
 
@@ -88,31 +88,35 @@ function renderUI(products, totalItems) {
 
     let html = products.map(product => {
         return `
-            <div class="col-md-6 col-lg-6 col-xl-4">
-                <div class="rounded position-relative fruite-item product-card" data-id="${product.id}">
+            <div class="col-md-6 col-lg-6 col-xl-4 d-flex">
+                <div class="rounded position-relative fruite-item product-card d-flex flex-column w-100" data-id="${product.id}">
                     <div class="fruite-img">
                         <img src="${product.image}" class="img-fluid w-100 rounded-top" alt="${product.name}" style="aspect-ratio: 1/1; object-fit: cover;" onerror="this.src='img/placeholder.jpg'">
                     </div>
                     <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">${product.category}</div>
-                    <div class="p-4 border border-success border-3 border-top-0 rounded-bottom bg-white">
+                    
+                    <div class="p-4 border border-success border-3 border-top-0 rounded-bottom bg-white d-flex flex-column flex-grow-1">
                         <h4 class="text-truncate" title="${product.name}">${product.name}</h4>
-                        <p class="text-truncate" title="${product.description}">${product.description}</p>
                         
-                        <div class="mb-4 text-start">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-dark">One-time:</span>
-                                <span class="text-dark fw-bold">$${product.priceOneTime.toFixed(2)}</span>
+                        <p title="${product.description}">${product.description}</p>
+                        
+                        <div class="mt-auto">
+                            <div class="mb-4 text-start">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-dark">One-time:</span>
+                                    <span class="text-dark fw-bold">$${product.price.toFixed(2)}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-success">Recurring (for members):</span>
+                                    <span class="text-success fw-bold">$${(product.price * 0.8).toFixed(2)}</span>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-success">Subscribe:</span>
-                                <span class="text-success fw-bold">$${product.priceSubscribe.toFixed(2)}</span>
-                            </div>
-                        </div>
 
-                        <div class="d-flex justify-content-between flex-lg-wrap">
-                            <button class="btn border border-success border-3 rounded-pill px-3 text-success add-to-cart-btn w-100">
-                                <i class="fa fa-shopping-bag me-2"></i> Add to cart
-                            </button>
+                            <div class="d-flex justify-content-between flex-lg-wrap">
+                                <button class="btn border border-success border-3 rounded-pill px-3 text-success add-to-cart-btn w-100">
+                                    <i class="fa fa-shopping-bag me-2"></i> Add to cart
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -173,7 +177,7 @@ function setupPriceFilter() {
     const amountOutput = document.getElementById('amount');
     if (!rangeInput || !amountOutput) return;
 
-    const maxProductPrice = Math.max(...allProducts.map(p => p.priceOneTime));
+    const maxProductPrice = Math.max(...allProducts.map(p => p.price));
     const maxLimit = Math.ceil(maxProductPrice / 5) * 5;
 
     rangeInput.min = 0;
@@ -252,7 +256,7 @@ function resetFilters() {
     
     const rangeInput = document.getElementById('rangeInput');
     const amountOutput = document.getElementById('amount');
-    const maxProductPrice = Math.max(...allProducts.map(p => p.priceOneTime));
+    const maxProductPrice = Math.max(...allProducts.map(p => p.price));
     const maxLimit = Math.ceil(maxProductPrice / 5) * 5;
     
     if (rangeInput && amountOutput) {
