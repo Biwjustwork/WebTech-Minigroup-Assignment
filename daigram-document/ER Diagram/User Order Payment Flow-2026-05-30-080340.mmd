@@ -1,0 +1,63 @@
+---
+config:
+  theme: redux
+---
+erDiagram
+    USERS ||--o{ ORDERS : "places (0 to many)"
+    PRODUCTS ||--o{ ORDER_ITEMS : "contains (0 to many)"
+    ORDERS ||--|{ ORDER_ITEMS : "has (1 to many)"
+    ORDERS ||--o{ PAYMENTS : "has (0 to many retries)"
+
+    USERS {
+        string user_id PK "ULID (เช่น '01ARZ3NDEKTSV4RRFFQ69G5FAV')"
+        string username
+        string email
+        string password_hash
+        boolean is_logged_in "Gatekeeper logic check"
+        string token "Stateless Identity (JWT)"
+        datetime last_login "2024-05-26T10:00:00Z"
+        datetime created_at
+    }
+
+    PRODUCTS {
+        string product_id PK "ULID"
+        string name
+        string category
+        string image
+        string description
+        decimal price "ราคาตั้งต้น (Base Price) ดึงไปให้ Backend คิดส่วนลดต่อ"
+        int stock_quantity
+    }
+
+    ORDERS {
+        string order_id PK "ULID"
+        string user_id FK "ULID, Nullable: เว้นไว้ถ้าเป็น Guest"
+        boolean is_guest_checkout "ระบุว่าเป็น Guest หรือไม่"
+        string guest_name "ชื่อลูกค้า (กรณี Guest)"
+        string guest_email "อีเมลลูกค้า (กรณี Guest)"
+        string address "ที่อยู่จัดส่ง"
+        decimal total_amount "ยอดรวมสุทธิ (เซิร์ฟเวอร์คำนวณให้)"
+        string order_status "สถานะคำสั่งซื้อ"
+        datetime created_at
+    }
+
+    ORDER_ITEMS {
+        string order_item_id PK "ULID"
+        string order_id FK "ULID"
+        string product_id FK "ULID"
+        int quantity "จำนวนสินค้า"
+        boolean is_recurring "ระบุว่าซื้อแบบ Subscription ไหม"
+        string frequency "รอบความถี่ เช่น '1_week', '1_month' (Nullable)"
+        datetime next_delivery_date "วันที่จัดส่งรอบถัดไป (Nullable)"
+        decimal unit_price "ราคาขายจริง ณ เวลานั้น (เก็บเป็นประวัติ)"
+        decimal discount_applied "ส่วนลดที่ Backend คำนวณและลดให้"
+    }
+
+    PAYMENTS {
+        string payment_id PK "ULID"
+        string order_id FK "ULID"
+        string payment_method "เช่น 'bank_transfer', 'credit_card', 'cod'"
+        string payment_status "เช่น 'pending', 'completed', 'failed'"
+        string transaction_ref "รหัสอ้างอิงบัตรเครดิต หรือ รูปสลิป (Nullable)"
+        datetime paid_at "เวลาที่ชำระเงินสำเร็จ (Nullable)"
+    }

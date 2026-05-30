@@ -3,7 +3,6 @@
     "user_id": "101",
     "username": "Alice",
     "email": "alice@example.com",
-    "phone": "1234567890",
     "password_hash": "5f4dcc3b5aa765d61d8327deb882cf99",
     "registration_date": "2024-01-15T08:22:10Z",
 
@@ -17,7 +16,6 @@
     "user_id": "102",
     "username": "Bob",
     "email": "bob@example.com",
-    "phone": "0987654321",
     "password_hash": "5f4dcc3b5aa765d61d8327deb882cf99",
     "registration_date": "2024-01-16T08:22:10Z",
 
@@ -31,7 +29,6 @@
     "user_id": "103",
     "username": "Charlie",
     "email": "charlie@example.com",
-    "phone": "5555555555",
     "password_hash": "5f4dcc3b5aa765d61d8327deb882cf99",
     "registration_date": "2024-01-17T08:22:10Z",
 
