@@ -1,12 +1,48 @@
 /**
- * login/register-Logic.js
+ * login-register-Logic.js
  * จัดการระบบ Authentication (Login & Register) สำหรับเว็บ EcoClean
- * รองรับ Robust Error Handling, Dynamic Validations และ Async Loading States ทั้ง 2 หน้าจอ
+ * อัปเกรด: ใช้ระบบ Mock Database ผ่าน LocalStorage โดย Seed ข้อมูลเริ่มต้นจาก users.json
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     
-    // รีสอร์สแชร์ร่วมกัน: Helper สำหรับการเปิดปิดตาดูรหัสผ่าน (ใช้ Class เพื่อรองรับหลายจุดพร้อมกันในหน้า Register)
+    // =========================================================================
+    // MOCK DATABASE INITIALIZATION
+    // =========================================================================
+    // ฟังก์ชันนี้จะทำหน้าที่เป็นเสมือน Backend ให้เราชั่วคราว
+    async function initMockDatabase() {
+        if (!localStorage.getItem('usersDB')) {
+            try {
+                // ดึงข้อมูลตั้งต้นจาก mock-data
+                const response = await fetch('backend/mock-data/users.json');
+                if (response.ok) {
+                    const users = await response.json();
+                    localStorage.setItem('usersDB', JSON.stringify(users));
+                    console.log("Mock Database initialized successfully from users.json");
+                } else {
+                    throw new Error('ไม่สามารถโหลดไฟล์ users.json ได้');
+                }
+            } catch (error) {
+                console.warn("ระบบทำงานในรูปแบบ Offline หรือหาไฟล์ไม่เจอ จะเริ่มต้นด้วย DB ว่างเปล่า", error);
+                localStorage.setItem('usersDB', JSON.stringify([]));
+            }
+        }
+    }
+
+    // รอให้จำลอง DB เสร็จสมบูรณ์ก่อนทำงานส่วนอื่น
+    await initMockDatabase();
+
+    // Helper: ฟังก์ชันจำลองการเข้ารหัส Password
+    // ใน users.json เดิม password_hash คือ "5f4dcc3b5aa765d61d8327deb882cf99" (MD5 ของคำว่า 'password')
+    function mockHash(password) {
+        if (password === 'password') return '5f4dcc3b5aa765d61d8327deb882cf99';
+        // จำลองการเข้ารหัสอย่างง่ายสำหรับรหัสผ่านใหม่ (ใช้ Base64 ในที่นี้เพื่อการจำลอง)
+        return btoa(password); 
+    }
+
+    // =========================================================================
+    // UI HELPERS
+    // =========================================================================
     const togglePasswordButtons = document.querySelectorAll('.togglePassword');
     togglePasswordButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -17,13 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
                     this.setAttribute('title', 'ซ่อนรหัสผ่าน');
                 } else {
                     passwordInput.type = 'password';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
                     this.setAttribute('title', 'ดูรหัสผ่าน');
                 }
             } catch (error) {
@@ -32,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Helper: ฟังก์ชันสำหรับวาดกล่องข้อความแจ้งเตือน (Alert Display)
     const alertContainer = document.getElementById('alertContainer');
     function showAlert(message, type = 'danger') {
         if (!alertContainer) return;
@@ -70,7 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 emailInput.classList.add('is-invalid');
                 isValid = false;
             }
-            if (!passwordValue) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+            if (!passwordValue || !passwordRegex.test(passwordValue)) {
                 passwordInput.classList.add('is-invalid');
                 isValid = false;
             }
@@ -84,12 +118,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginBtn.disabled = true;
                 loginSpinner.classList.remove('d-none');
 
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate Network
+                await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate Network Latency
 
-                if (emailValue === 'admin@ecoclean.com' && passwordValue === 'password123') {
+                // ดึงข้อมูล User ทั้งหมดจาก Mock Database
+                const usersDB = JSON.parse(localStorage.getItem('usersDB') || '[]');
+                const hashedPassword = mockHash(passwordValue);
+
+                // ตรวจสอบว่ามีผู้ใช้และรหัสผ่านตรงกันหรือไม่
+                const matchedUser = usersDB.find(u => u.email === emailValue && u.password_hash === hashedPassword);
+
+                if (matchedUser) {
                     showAlert('เข้าสู่ระบบสำเร็จ! กำลังนำคุณไปยังหน้าหลัก...', 'success');
+                    
+                    // อัปเดตสถานะการ Login กลับเข้าไปใน Mock Database
+                    matchedUser.auth_status.is_logged_in = true;
+                    matchedUser.auth_status.last_login = new Date().toISOString();
+                    localStorage.setItem('usersDB', JSON.stringify(usersDB));
+
+                    // เก็บ Session ไว้สำหรับหน้าอื่นๆ (เช่น หน้า index, cart)
                     localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('userEmail', emailValue);
+                    localStorage.setItem('currentUser', JSON.stringify(matchedUser));
+                    
                     setTimeout(() => window.location.href = 'index.html', 1000);
                 } else {
                     throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
@@ -118,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // ล้างสถานะ Error เก่าออกทั้งหมดก่อนตรวจรอบใหม่
             alertContainer.innerHTML = '';
             [usernameInput, emailInput, passwordInput, confirmPasswordInput].forEach(el => el.classList.remove('is-invalid'));
 
@@ -128,26 +176,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const confirmPasswordValue = confirmPasswordInput.value;
             let isValid = true;
 
-            // 1. ตรวจสอบ Username
             if (!usernameValue || usernameValue.length < 3) {
                 usernameInput.classList.add('is-invalid');
                 isValid = false;
             }
 
-            // 2. ตรวจสอบ Email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailValue || !emailRegex.test(emailValue)) {
                 emailInput.classList.add('is-invalid');
                 isValid = false;
             }
-
-            // 3. ตรวจสอบ Password ความยาวอย่างน้อย 6 ตัวอักษรตามมาตรฐาน Security
-            if (!passwordValue || passwordValue.length < 6) {
+            
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+            if (!passwordValue || !passwordRegex.test(passwordValue)) {
                 passwordInput.classList.add('is-invalid');
                 isValid = false;
             }
 
-            // 4. ตรวจสอบ Confirm Password (ต้องแมตช์กันพอดี)
             if (passwordValue !== confirmPasswordValue) {
                 confirmPasswordInput.classList.add('is-invalid');
                 isValid = false;
@@ -158,29 +203,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // ส่งข้อมูลสมัครสมาชิกจำลองไปยัง Backend
             try {
                 registerBtn.disabled = true;
                 registerSpinner.classList.remove('d-none');
 
-                // หน่วงเวลา Network Latency 1.5 วินาที เพื่อจำลองสถานการณ์จริง
                 await new Promise(resolve => setTimeout(resolve, 1500));
 
-                // จำลองการสมัครสำเร็จ (Mock บันทึกค่าลงคลังจำลอง)
+                // จำลองกระบวนการเพิ่มผู้ใช้ใหม่ลง Database
+                const usersDB = JSON.parse(localStorage.getItem('usersDB') || '[]');
+                
+                // เช็ค Email ซ้ำ
+                const emailExists = usersDB.some(u => u.email === emailValue);
+                if (emailExists) {
+                    throw new Error('อีเมลนี้ถูกใช้งานไปแล้ว กรุณาใช้อีเมลอื่น');
+                }
+
+                // สร้าง Object ผู้ใช้ใหม่ ตาม Schema ใน users.json
+                const newUser = {
+                    user_id: Date.now().toString(), // สร้าง ID แบบง่ายๆ จาก Timestamp
+                    username: usernameValue,
+                    email: emailValue,
+                    password_hash: mockHash(passwordValue),
+                    registration_date: new Date().toISOString(),
+                    auth_status: {
+                        is_logged_in: false,
+                        token: null,
+                        last_login: null
+                    }
+                };
+
+                // เพิ่มเข้า DB จำลองและ Save กลับไปที่ LocalStorage
+                usersDB.push(newUser);
+                localStorage.setItem('usersDB', JSON.stringify(usersDB));
+
                 showAlert('สมัครสมาชิกเสร็จสมบูรณ์! ระบบกำลังพาท่านไปหน้าเข้าสู่ระบบ...', 'success');
                 
-                // เก็บชื่อและเมลไว้ใช้งานเบื้องต้นได้
-                localStorage.setItem('registeredUser', usernameValue);
-                localStorage.setItem('registeredEmail', emailValue);
-
-                // พาย้ายหน้าไปล็อกอินหลังจากผ่านไป 1.5 วินาทีเพื่อให้เห็น Alert ความสำเร็จก่อน
                 setTimeout(() => {
                     window.location.href = 'login.html';
                 }, 1500);
 
             } catch (error) {
                 console.error("Registration Processing Error:", error);
-                showAlert('เกิดความล่าช้าในระบบเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งภายหลัง');
+                showAlert(error.message || 'เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง');
                 registerBtn.disabled = false;
                 registerSpinner.classList.add('d-none');
             }
