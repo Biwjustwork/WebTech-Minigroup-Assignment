@@ -14,6 +14,8 @@ function resolveDatabasePath() {
 }
 
 async function getSqlRuntime() {
+  // sql.js loads a WebAssembly SQLite runtime. We memoize it so all scripts reuse
+  // the same initialized runtime instead of paying setup cost on each DB open.
   if (!sqlRuntimePromise) {
     sqlRuntimePromise = initSqlJs();
   }
@@ -25,10 +27,15 @@ async function openDatabase() {
   const databasePath = resolveDatabasePath();
   fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 
+  // sql.js stores the DB in memory while it is open. If a file already exists,
+  // we hydrate the in-memory database from that file first.
   const SQL = await getSqlRuntime();
   const fileBuffer = fs.existsSync(databasePath) ? fs.readFileSync(databasePath) : null;
   const db = fileBuffer ? new SQL.Database(fileBuffer) : new SQL.Database();
 
+  // Keep the resolved path on the DB object so closeDatabase can persist changes
+  // back to disk. Foreign keys are explicitly enabled because SQLite can leave
+  // them off by default depending on the runtime.
   db.__databasePath = databasePath;
   db.run('PRAGMA foreign_keys = ON;');
 
@@ -36,6 +43,8 @@ async function openDatabase() {
 }
 
 async function run(db, sql, params = []) {
+  // Every helper accepts params separately from SQL text. This is the foundation
+  // for parameterized queries and prevents SQL injection when user input arrives.
   const stmt = db.prepare(sql);
 
   try {
@@ -78,6 +87,9 @@ async function exec(db, sql) {
 }
 
 async function closeDatabase(db) {
+  // Persist the in-memory SQLite database to backend/data/app.sqlite before
+  // closing. API code must call this after write operations until we introduce a
+  // longer-lived connection manager.
   if (db.__databasePath) {
     const data = db.export();
     fs.writeFileSync(db.__databasePath, Buffer.from(data));

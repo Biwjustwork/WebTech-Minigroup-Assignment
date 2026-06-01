@@ -1,3 +1,7 @@
+-- Initial relational schema for the Eco-Refill marketplace.
+-- This file implements Session 7's Relational Persistence requirement:
+-- normalized tables, primary keys, foreign keys, and integrity checks.
+
 CREATE TABLE IF NOT EXISTS users (
   user_id TEXT PRIMARY KEY,
   username TEXT NOT NULL,
@@ -10,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Products are the source of truth for price and inventory. Checkout must read
+-- price from this table instead of trusting client-side cart totals.
 CREATE TABLE IF NOT EXISTS products (
   product_id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -22,6 +28,7 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Orders keep user/guest delivery and final server-calculated totals.
 CREATE TABLE IF NOT EXISTS orders (
   order_id TEXT PRIMARY KEY,
   user_id TEXT,
@@ -42,6 +49,9 @@ CREATE TABLE IF NOT EXISTS orders (
   )
 );
 
+-- Order items snapshot the product price and discount at purchase time. This is
+-- important because product prices may change later, but old receipts must stay
+-- historically accurate.
 CREATE TABLE IF NOT EXISTS order_items (
   order_item_id TEXT PRIMARY KEY,
   order_id TEXT NOT NULL,
@@ -63,6 +73,8 @@ CREATE TABLE IF NOT EXISTS order_items (
   )
 );
 
+-- Payment is intentionally allowed to be "bypassed" for the assignment, while
+-- still keeping the relationship ready for real payment attempts/retries.
 CREATE TABLE IF NOT EXISTS payments (
   payment_id TEXT PRIMARY KEY,
   order_id TEXT NOT NULL,
@@ -76,6 +88,8 @@ CREATE TABLE IF NOT EXISTS payments (
   FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
 
+-- Indexes support the expected API queries: product filtering, user order
+-- history, checkout item lookup, and future recommendation joins.
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);

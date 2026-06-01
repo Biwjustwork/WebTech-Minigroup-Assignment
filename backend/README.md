@@ -21,6 +21,7 @@ Express API for The Smart-Niche Marketplace.
 cp .env.example .env
 npm install
 npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
@@ -28,3 +29,4 @@ The API starts on `http://localhost:3001` by default.
 
 The default SQLite database file is `backend/data/app.sqlite`.
 
+Seeded demo users use the password `password`.
