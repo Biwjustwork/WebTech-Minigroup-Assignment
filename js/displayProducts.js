@@ -248,19 +248,6 @@ function setupSearchEvents() {
     });
 }
 
-function getQueryParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name) || '';
-}
-
-function applySearchQueryFromURL() {
-    const urlKeyword = getQueryParam('q').trim();
-    if (!urlKeyword) return;
-
-    currentKeyword = urlKeyword.toLowerCase();
-    document.querySelectorAll('input[type="search"]').forEach(input => input.value = urlKeyword);
-}
-
 function resetFilters() {
     currentCategory = 'All';
     currentKeyword = '';
@@ -295,7 +282,6 @@ async function requestProducts() {
         setupPriceFilter();
         renderCategories(allProducts);
         setupSearchEvents();
-        applySearchQueryFromURL();
         
         // ข้ามไปเรียก processAndRender ทันทีเพื่อแสดงหน้าแรก
         processAndRender(); 
