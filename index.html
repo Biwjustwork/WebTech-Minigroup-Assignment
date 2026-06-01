@@ -110,10 +110,10 @@
                         <h4 class="mb-3 text-secondary">Zero Waste & Eco-Friendly</h4>
                         <h1 class="mb-5 display-3 text-success">Sustainable Home Cleaning Refills</h1>
                         <p class="mb-4 text-dark fs-5">Subscribe to our monthly refill plans and save 20% on all essential cleaning products. Better for your home, better for the planet.</p>
-                        <div class="position-relative mx-auto">
-                            <input class="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="text" placeholder="Find your cleaning supplies">
+                        <form class="position-relative mx-auto" action="shop.html" method="get">
+                            <input class="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="text" name="q" placeholder="Find your cleaning supplies">
                             <button type="submit" class="btn btn-success border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style="top: 0; right: 25%;">Shop Now</button>
-                        </div>
+                        </form>
                     </div>
                     <div class="col-md-12 col-lg-5">
                         <div id="carouselId" class="carousel slide position-relative" data-bs-ride="carousel">
@@ -237,7 +237,7 @@
                                 <div class="col-lg-12">
                                     <div class="row g-4">
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_04">
                                                 <div class="fruite-img">
                                                     <img src="img/Concentrated Cleaning Tablets.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -248,13 +248,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$9.99</del> $7.99/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_04')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_05">
                                                 <div class="fruite-img">
                                                     <img src="img/Laundry Detergent Sheets.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -265,13 +265,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$14.99</del> $11.99/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_05')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_03">
                                                 <div class="fruite-img">
                                                     <img src="img/Dish Washing Soap Block.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -282,13 +282,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 15%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$12.00</del> $10.20/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_03')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_06">
                                                 <div class="fruite-img">
                                                     <img src="img/Compostable Trash Bags.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -299,13 +299,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$8.99</del> $7.19/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_06')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_07">
                                                 <div class="fruite-img">
                                                     <img src="img/Bamboo Dish Brush.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -316,13 +316,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe (Heads): Save 20%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$6.50</del> $5.20/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_07')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_04">
                                                 <div class="fruite-img">
                                                     <img src="img/Eco-Friendly All-Purpose Cleaner.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -333,13 +333,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$10.99</del> $8.79/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_04')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_05">
                                                 <div class="fruite-img">
                                                     <img src="img/Swedish Sponge Cloths.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -350,13 +350,13 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 15%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$15.00</del> $12.75/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_05')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item">
+                                            <div class="rounded position-relative fruite-item" data-id="prod_06">
                                                 <div class="fruite-img">
                                                     <img src="img/Coconut Coir Toilet Brush Set.jpg" class="img-fluid w-100 rounded-top" alt="">
                                                 </div>
@@ -367,7 +367,7 @@
                                                     <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe (Heads): Save 20%</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$9.00</del> $7.20/mo</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fas fa-sync-alt me-2 text-success"></i> Subscribe</a>
+                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_06')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
                                                     </div>
                                                 </div>
                                             </div>
