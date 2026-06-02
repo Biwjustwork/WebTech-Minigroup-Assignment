@@ -277,5 +277,32 @@ feat(backend): scaffold express api structure
 feat(database): add initial sql schema and migration
 feat(database): seed mock data into sqlite
 feat(products): add product catalog api
+feat(auth): add registration login and jwt verification
 docs(backend): document backend architecture decisions
 ```
+
+## 12. Authentication API
+
+เพิ่ม Auth API ตาม Session 5-6 และ Auth Logic sequence diagram:
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+GET /api/auth/verify-session
+```
+
+Flow:
+
+```text
+Route -> Auth Controller -> Auth Service -> SQL Database
+```
+
+จุดสำคัญ:
+
+- register validate `username`, `email`, `password` ฝั่ง server
+- password ถูก hash ด้วย bcrypt ก่อนเก็บลง `users.password_hash`
+- login ใช้ bcrypt compare ไม่เทียบ plain text
+- login สำเร็จจะ sign JWT และ update `users.token`, `users.is_logged_in`, `users.last_login`
+- verify-session ใช้ Bearer token และ middleware `authenticateUser`
+- response ไม่ส่ง `password_hash` กลับไป frontend
+- มี `optionalAuthenticateUser` เตรียมไว้สำหรับ checkout แบบ guest ที่ยังต้องรู้ว่า user login หรือไม่

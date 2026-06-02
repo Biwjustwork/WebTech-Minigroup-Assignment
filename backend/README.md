@@ -47,3 +47,28 @@ GET /api/products/prod_01
 ```
 
 The list response returns `data` plus pagination `meta`.
+
+## Authentication API
+
+Register:
+
+```text
+POST /api/auth/register
+Body: { "username": "Alice", "email": "alice@example.com", "password": "password" }
+```
+
+Login:
+
+```text
+POST /api/auth/login
+Body: { "email": "alice@example.com", "password": "password" }
+```
+
+Verify a JWT session:
+
+```text
+GET /api/auth/verify-session
+Authorization: Bearer <token>
+```
+
+The login response returns a JWT token plus a safe user object without `password_hash`.
