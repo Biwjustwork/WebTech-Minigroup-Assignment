@@ -205,11 +205,41 @@ GET /api/health
 
 API feature ถัดไปที่ควรทำ:
 
-- `GET /api/products`
-- `GET /api/products/:id`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/checkout`
+
+## 11. Product API
+
+เพิ่ม Product API ตาม Dynamic Product Display sequence diagram:
+
+```text
+GET /api/products
+GET /api/products/:productId
+```
+
+รองรับ query:
+
+- `keyword`
+- `category`
+- `minPrice`
+- `maxPrice`
+- `page`
+- `limit`
+
+Flow:
+
+```text
+Route -> Product Controller -> Product Service -> SQL Database
+```
+
+จุดสำคัญ:
+
+- ไม่อ่าน `products.json` โดยตรงแล้ว แต่อ่านจาก SQL table `products`
+- ใช้ parameterized queries ทุก filter
+- pagination ถูกคำนวณฝั่ง backend
+- response มี `data` และ `meta` เพื่อให้ frontend render catalog ได้แบบ dynamic
+- `GET /api/products/:productId` คืน `404 PRODUCT_NOT_FOUND` ถ้าไม่มี product
 
 ## 9. Commands
 
@@ -246,6 +276,6 @@ npm run dev
 feat(backend): scaffold express api structure
 feat(database): add initial sql schema and migration
 feat(database): seed mock data into sqlite
+feat(products): add product catalog api
 docs(backend): document backend architecture decisions
 ```
-

@@ -30,3 +30,20 @@ The API starts on `http://localhost:3001` by default.
 The default SQLite database file is `backend/data/app.sqlite`.
 
 Seeded demo users use the password `password`.
+
+## Product API
+
+List products:
+
+```text
+GET /api/products
+GET /api/products?keyword=soap&category=Laundry&maxPrice=20&page=1&limit=6
+```
+
+Get one product:
+
+```text
+GET /api/products/prod_01
+```
+
+The list response returns `data` plus pagination `meta`.
