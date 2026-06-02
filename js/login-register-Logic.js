@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 emailInput.classList.add('is-invalid');
                 isValid = false;
             }
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
             if (!passwordValue || !passwordRegex.test(passwordValue)) {
                 passwordInput.classList.add('is-invalid');
                 isValid = false;
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 isValid = false;
             }
             
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
             if (!passwordValue || !passwordRegex.test(passwordValue)) {
                 passwordInput.classList.add('is-invalid');
                 isValid = false;
