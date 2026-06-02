@@ -278,6 +278,8 @@ feat(database): add initial sql schema and migration
 feat(database): seed mock data into sqlite
 feat(products): add product catalog api
 feat(auth): add registration login and jwt verification
+feat(cart): add persistent cart api
+feat(checkout): add transactional order placement
 docs(backend): document backend architecture decisions
 ```
 
@@ -306,3 +308,52 @@ Route -> Auth Controller -> Auth Service -> SQL Database
 - verify-session ใช้ Bearer token และ middleware `authenticateUser`
 - response ไม่ส่ง `password_hash` กลับไป frontend
 - มี `optionalAuthenticateUser` เตรียมไว้สำหรับ checkout แบบ guest ที่ยังต้องรู้ว่า user login หรือไม่
+
+## 13. Cart API
+
+เพิ่ม Cart API:
+
+```text
+GET /api/cart
+POST /api/cart/items
+PATCH /api/cart/items/:productId
+DELETE /api/cart/items/:productId
+```
+
+เพิ่ม migration `002_cart_schema.sql`:
+
+- `carts`
+- `cart_items`
+
+แนวคิด:
+
+- guest cart ใช้ `X-Cart-Session-Id`
+- logged-in cart ใช้ JWT user identity
+- cart item เก็บ `quantity`, `is_recurring`, `frequency`
+- backend preview subtotal/discount/total จาก product table
+- recurring discount 20% แสดงเฉพาะเมื่อมี logged-in user
+
+## 14. Checkout / Order API
+
+เพิ่ม Checkout API:
+
+```text
+POST /api/checkout
+```
+
+สิ่งที่ backend ทำใน transaction:
+
+- validate address และ guest info
+- โหลด items จาก cart หรือจาก direct checkout payload
+- query product price จาก SQL table `products`
+- ตรวจ `stock_quantity` ก่อนสั่งซื้อ
+- คำนวณ subtotal, discount, total ฝั่ง server
+- apply 20% discount เฉพาะ recurring + logged-in user
+- insert `orders`
+- decrement stock
+- insert `order_items`
+- insert `payments` เป็น `bypassed`
+- mark cart เป็น `checked_out`
+- rollback ทั้งหมดถ้ามี error เช่น stock ไม่พอ
+
+นี่คือ Gatekeeper Pattern: frontend ส่งแค่ intent แต่ backend เป็นคนตัดสินราคาจริง ส่วนลดจริง และ stock จริง

@@ -125,6 +125,18 @@ async function seedUsers(db, users) {
   }
 }
 
+async function resetDemoData(db) {
+  // Seed is a development/demo reset, so remove transactional rows first to
+  // satisfy foreign keys, then refresh products and demo users from mock data.
+  await run(db, 'DELETE FROM cart_items');
+  await run(db, 'DELETE FROM carts');
+  await run(db, 'DELETE FROM payments');
+  await run(db, 'DELETE FROM order_items');
+  await run(db, 'DELETE FROM orders');
+  await run(db, 'DELETE FROM users');
+  await run(db, 'DELETE FROM products');
+}
+
 async function seedDatabase() {
   // Seeding depends on the schema, so migrations are run first. This lets a new
   // teammate clone the project and run only npm run db:seed safely.
@@ -140,6 +152,7 @@ async function seedDatabase() {
     await run(db, 'BEGIN');
 
     try {
+      await resetDemoData(db);
       await seedProducts(db, products);
       await seedUsers(db, users);
       await run(db, 'COMMIT');

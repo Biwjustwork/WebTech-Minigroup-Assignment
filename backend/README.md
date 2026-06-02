@@ -29,7 +29,7 @@ The API starts on `http://localhost:3001` by default.
 
 The default SQLite database file is `backend/data/app.sqlite`.
 
-Seeded demo users use the password `password`.
+Seeded demo users use the password `password`. Running `npm run db:seed` resets demo products, users, carts, and orders.
 
 ## Product API
 
@@ -72,3 +72,60 @@ Authorization: Bearer <token>
 ```
 
 The login response returns a JWT token plus a safe user object without `password_hash`.
+
+## Cart API
+
+Guest carts use `X-Cart-Session-Id`. If the header is missing, the API creates a new guest cart and returns `cartSessionId`.
+
+```text
+GET /api/cart
+POST /api/cart/items
+PATCH /api/cart/items/:productId
+DELETE /api/cart/items/:productId
+```
+
+Add item body:
+
+```json
+{
+  "productId": "prod_01",
+  "quantity": 2,
+  "orderType": "recurring",
+  "frequency": "monthly"
+}
+```
+
+Logged-in carts use `Authorization: Bearer <token>`. Recurring cart preview receives the 20% discount only for logged-in users.
+
+## Checkout API
+
+Checkout from the current cart:
+
+```text
+POST /api/checkout
+Authorization: Bearer <token>
+Body: { "address": "456 Member Road" }
+```
+
+Guest checkout:
+
+```text
+POST /api/checkout
+X-Cart-Session-Id: <cartSessionId>
+Body: { "guestName": "Guest", "guestEmail": "guest@example.com", "address": "123 Demo Street" }
+```
+
+Direct checkout payloads are also supported:
+
+```json
+{
+  "guestName": "Guest",
+  "guestEmail": "guest@example.com",
+  "address": "123 Demo Street",
+  "items": [
+    { "productId": "prod_01", "quantity": 1, "orderType": "one-time" }
+  ]
+}
+```
+
+Checkout recalculates price, discount, stock, and totals on the backend. Payment is recorded as `bypassed`.
