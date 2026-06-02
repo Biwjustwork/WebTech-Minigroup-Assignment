@@ -118,130 +118,125 @@
             <div class="container py-5">
                 <form action="#">
                     <div class="row g-4">
-                        <div class="col-md-12 col-lg-6 col-xl-7">
+                        <div class="col-md-12 col-lg-5 col-xl-5">
                             <h1 class="mb-4">Billing details</h1>
                             <div class="row g-4">
                                 
                                 <div class="col-md-12">
                                     <div class="form-item w-100">
                                         <label class="form-label my-3">Name (Username for Member / First & Last Name for Guest) <sup>*</sup></label>
-                                        <input id="checkout-name" type="text" class="form-control" placeholder="Enter Username or First and Last name" required>
+                                        <input type="text" class="form-control" placeholder="Enter Username or First and Last name" required>
                                     </div>
                                 </div>
 
                                 <div class="col-md-12">
                                     <div class="form-item w-100">
                                         <label class="form-label my-3">Email Address <sup>*</sup></label>
-                                        <input id="checkout-email" type="email" class="form-control" placeholder="Enter your email" required>
+                                        <input type="email" class="form-control" placeholder="Enter your email" required>
                                     </div>
                                 </div>
 
                                 <div class="col-md-12">
                                     <div class="form-item w-100">
                                         <label class="form-label my-3">Address <sup>*</sup></label>
-                                        <textarea id="checkout-address" class="form-control" spellcheck="false" cols="30" rows="4" placeholder="House number, street name, and city" required></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-12">
-                                    <div class="form-item w-100">
-                                        <label class="form-label my-3">Refill Frequency (ระบุรอบการส่ง) <sup>*</sup></label>
-                                        <select id="checkout-refill-frequency" class="form-select" name="refill_frequency" required>
-                                            <option value="one-time" selected>One-time purchase (ส่งครั้งเดียว)</option>
-                                            <option value="weekly">Every 1 Week (ทุก 1 สัปดาห์)</option>
-                                            <option value="bi-weekly">Every 2 Weeks (ทุก 2 สัปดาห์)</option>
-                                            <option value="monthly">Every 1 Month (ทุก 1 เดือน)</option>
-                                        </select>
+                                        <textarea class="form-control" spellcheck="false" cols="30" rows="4" placeholder="House number, street name, and city" required></textarea>
                                     </div>
                                 </div>
 
                                 <div class="col-md-12">
                                     <div class="form-item w-100">
                                         <label class="form-label my-3">Payment Method (วิธีการชำระเงิน) <sup>*</sup></label>
-                                        <select id="checkout-payment-method" class="form-select" name="payment_method" required>
+                                        <select class="form-select" name="payment_method" required>
                                             <option value="" disabled selected>-- กรุณาเลือกวิธีการชำระเงิน --</option>
                                             <option value="direct-bank-transfer">Direct Bank Transfer</option>
                                             <option value="cash-on-delivery">Cash on Delivery</option>
                                             <option value="credit-card">Credit card</option>
                                         </select>
-                                        <div id="payment-extra-fields" class="mt-3"></div>
                                     </div>
                                 </div>
                                 
                             </div>
                         </div>
-                        <div class="col-md-12 col-lg-6 col-xl-5">
+                        <div class="col-md-12 col-lg-7 col-xl-7">
                             <div class="table-responsive">
-                                <table class="table">
+                                <table class="table text-nowrap">
                                     <thead>
                                         <tr>
-                                            <th scope="col">Products</th>
-                                            <th scope="col">Name</th>
-                                            <th scope="col">Price</th>
-                                            <th scope="col">Quantity</th>
-                                            <th scope="col">Total</th>
+                                            <th scope="col " class="text-center">Product</th>
+                                            <th scope="col" class="text-center">Order Type</th>
+                                            <th scope="col" class="text-center">Price</th>
+                                            <th scope="col" class="text-center">Qty</th>
+                                            <th scope="col" class="text-center">Total</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="checkout-items-body">
-                                        <tr class="checkout-empty-row">
-                                            <td colspan="5" class="text-center py-5">
-                                                <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
-                                                <p class="mt-3 text-muted">Loading your checkout cart...</p>
+                                    <tbody>
+                                        <tr>
+                                            <td class="py-3 text-center">Awesome Brocoli</td>
+                                            <td class="py-3 text-center">One-time</td>
+                                            <td class="py-3 text-center">$69.00</td>
+                                            <td class="py-3 text-center">2</td>
+                                            <td class="py-3 text-center">$138.00</td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <td class="py-3 text-center">Potatoes</td>
+                                            <td class="py-3 text-center">
+                                                Recurring<br>
+                                                <small class="text-muted">Every 1 week</small>
+                                            </td>
+                                            <td class="py-3 text-center text-success">$62.10</td> 
+                                            <td class="py-3 text-center">2</td>
+                                            <td class="py-3 text-center">$124.20</td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <td class="py-3 text-center">Big Banana</td>
+                                            <td class="py-3 text-center">One-time</td>
+                                            <td class="py-3 text-center">$69.00</td>
+                                            <td class="py-3 text-center">2</td>
+                                            <td class="py-3 text-center">$138.00</td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <th scope="row"></th>
+                                            
+                                            <td class="py-3 text-center">
+                                                <p class="mb-0 text-dark ">Subtotal</p>
+                                            </td>
+                                            <td class="py-3 text-center"></td>
+                                            <td class="py-3 text-center"></td>
+                                            <td class="py-3 text-center"><p class="mb-0 text-dark">$400.20</p></td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <th scope="row"></th>
+                                        
+                                            <td class="py-3 text-center">
+                                                <p class="mb-0 text-success">Discount 10%<br><small class="text-muted">(Order over $200)</small></p>
+                                            </td>
+                                            <td class="py-3 text-center"></td>
+                                            <td class="py-3 text-center"></td>
+                                            <td class="py-3 text-center">
+                                                    <p class="mb-0 text-success">-$40.02</p>
+                                            </td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <th scope="row"></th>
+                                            <td class="py-3 text-center">
+                                                <p class="mb-0 text-dark text-uppercase">TOTAL</p>
+                                            </td>
+                                            <td class="py-3 text-center"></td>
+                                            <td class="py-3 text-center"></td>
+                                            <td class="py-3 text-center">
+                                                    <p class="mb-0 text-dark">$360.18</p>
                                             </td>
                                         </tr>
                                     </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th scope="row"></th>
-                                            <td class="py-5"></td>
-                                            <td class="py-5"></td>
-                                            <td class="py-5">
-                                                <p class="mb-0 text-dark py-3">Subtotal</p>
-                                            </td>
-                                            <td class="py-5">
-                                                <div class="py-3 border-bottom border-top">
-                                                    <p id="checkout-subtotal" class="mb-0 text-dark">$0.00</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"></th>
-                                            <td class="py-5">
-                                                <p class="mb-0 text-dark py-4">Shipping</p>
-                                            </td>
-                                            <td colspan="3" class="py-5">
-                                                <div class="form-check text-start">
-                                                    <input type="radio" class="form-check-input bg-success border-0" id="Shipping-1" name="shipping_method" value="0" checked>
-                                                    <label class="form-check-label" for="Shipping-1">Free Shipping</label>
-                                                </div>
-                                                <div class="form-check text-start">
-                                                    <input type="radio" class="form-check-input bg-success border-0" id="Shipping-2" name="shipping_method" value="15">
-                                                    <label class="form-check-label" for="Shipping-2">Flat rate: $15.00</label>
-                                                </div>
-                                                <div class="form-check text-start">
-                                                    <input type="radio" class="form-check-input bg-success border-0" id="Shipping-3" name="shipping_method" value="8">
-                                                    <label class="form-check-label" for="Shipping-3">Local Pickup: $8.00</label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"></th>
-                                            <td class="py-5">
-                                                <p class="mb-0 text-dark text-uppercase py-3">TOTAL</p>
-                                            </td>
-                                            <td class="py-5"></td>
-                                            <td class="py-5"></td>
-                                            <td class="py-5">
-                                                <div class="py-3 border-bottom border-top">
-                                                    <p id="checkout-total" class="mb-0 text-dark">$0.00</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tfoot>
                                 </table>
                             </div>
                             <div class="row g-4 text-center align-items-center justify-content-center pt-4">
-                                <button type="button" id="checkout-place-order" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-success">Place Order</button>
+                                <button type="button" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-success">Place Order</button>
                             </div>
                         </div>
                     </div>

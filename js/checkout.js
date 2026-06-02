@@ -1,227 +1,234 @@
+/**
+ * checkout.js
+ * ควบคุมการแสดงผลรายการสินค้าในหน้า Checkout, การคำนวณส่วนลด 
+ * ระบบ Auto-fill ข้อมูลผู้ใช้, เงื่อนไขฟอร์มชำระเงิน และบันทึก Order (Mock ERD) ลง LocalStorage
+ */
+
 document.addEventListener('DOMContentLoaded', async () => {
-    const tbody = document.getElementById('checkout-items-body');
-    const subtotalEl = document.getElementById('checkout-subtotal');
-    const totalEl = document.getElementById('checkout-total');
-    const placeOrderBtn = document.getElementById('checkout-place-order');
-    const shippingInputs = document.querySelectorAll('input[name="shipping_method"]');
+    // ============================================================================
+    // 1. SELECTORS: อ้างอิง Elements ในหน้า checkout.html
+    // ============================================================================
+    const tableBody = document.querySelector('.table tbody');
+    const paymentSelect = document.querySelector('select[name="payment_method"]');
+    const placeOrderBtn = document.querySelector('button.text-success'); // ปุ่ม Place Order
+    
+    // ค้นหาช่อง Input จาก Placeholder และ Type 
+    const inputs = document.querySelectorAll('.form-control');
+    const nameInput = Array.from(inputs).find(el => el.placeholder.includes('name') || el.placeholder.includes('Name'));
+    const emailInput = Array.from(inputs).find(el => el.type === 'email');
+    const addressInput = document.querySelector('textarea'); 
 
-    const nameInput = document.getElementById('checkout-name');
-    const emailInput = document.getElementById('checkout-email');
-    const addressInput = document.getElementById('checkout-address');
-    const refillSelect = document.getElementById('checkout-refill-frequency');
-    const paymentMethod = document.getElementById('checkout-payment-method');
-    const paymentExtra = document.getElementById('payment-extra-fields');
+    if (!tableBody || !placeOrderBtn) return; 
 
-    if (!tbody || !subtotalEl || !totalEl || !placeOrderBtn) return;
+    // ============================================================================
+    // 2. DYNAMIC PAYMENT FIELD: เพิ่มช่องกรอกบัตรเครดิต/เลขบัญชี
+    // ============================================================================
+    const extraPaymentContainer = document.createElement('div');
+    extraPaymentContainer.className = 'col-md-12 mt-3 d-none';
+    extraPaymentContainer.innerHTML = `
+        <div class="form-item w-100">
+            <label class="form-label my-3" id="extra-payment-label">Account Number <sup>*</sup></label>
+            <input type="text" class="form-control border-success border-2" id="extra-payment-input" placeholder="Enter details">
+        </div>
+    `;
+    
+    if (paymentSelect) {
+        paymentSelect.closest('.col-md-12').appendChild(extraPaymentContainer);
+    }
+    const extraPaymentInput = document.getElementById('extra-payment-input');
+    const extraPaymentLabel = document.getElementById('extra-payment-label');
 
-    let shoppingCart = JSON.parse(localStorage.getItem('shoppingCart')) || {};
-    let products = [];
-    let currentSubtotal = 0;
-
-    try {
-        // try local backend/mock-data first (project may store mock JSON here)
-        const response = await fetch('backend/mock-data/products.json');
-        if (!response.ok) throw new Error('Failed to fetch product data');
-        products = await response.json();
-    } catch (error) {
-        // fallback: try project-level json folder
-        try {
-            const resp2 = await fetch('json/Products.json');
-            if (!resp2.ok) throw new Error('Fallback failed');
-            const data = await resp2.json();
-            products = data;
-        } catch (err) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-5 text-danger">
-                        ไม่สามารถโหลดสินค้าได้ในขณะนี้
-                    </td>
-                </tr>
-            `;
-            placeOrderBtn.disabled = true;
-            console.error('Checkout load error:', error, err);
-            return;
+    paymentSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'direct-bank-transfer') {
+            extraPaymentContainer.classList.remove('d-none');
+            extraPaymentLabel.innerHTML = 'Bank Account Number <sup>*</sup>';
+            extraPaymentInput.placeholder = 'ระบุเลขที่บัญชีธนาคารของคุณ';
+        } else if (val === 'credit-card') {
+            extraPaymentContainer.classList.remove('d-none');
+            extraPaymentLabel.innerHTML = 'Credit Card Number <sup>*</sup>';
+            extraPaymentInput.placeholder = 'ระบุหมายเลขบัตรเครดิต 16 หลัก';
+        } else {
+            extraPaymentContainer.classList.add('d-none');
+            extraPaymentInput.value = ''; 
         }
+    });
+
+    // ============================================================================
+    // 3. AUTO-FILL USER DATA: ดึงข้อมูลจาก LocalStorage
+    // ============================================================================
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+
+    if (isLoggedIn && currentUser) {
+        if (nameInput) nameInput.value = currentUser.username || '';
+        if (emailInput) emailInput.value = currentUser.email || '';
     }
 
-    function formatCurrency(value) {
-        return `$${value.toFixed(2)}`;
+    // ============================================================================
+    // 4. RENDER TABLE & CALCULATE DISCOUNTS: สร้างตารางและคำนวณราคา
+    // ============================================================================
+    let shoppingCart = JSON.parse(localStorage.getItem('shoppingCart') || '{}');
+    let products = [];
+    
+    try {
+        const response = await fetch('backend/mock-data/products.json');
+        if (response.ok) products = await response.json();
+    } catch(err) {
+        console.error("Failed to load products DB", err);
     }
 
-    function getShippingCost() {
-        const selected = document.querySelector('input[name="shipping_method"]:checked');
-        return selected ? parseFloat(selected.value) : 0;
-    }
+    tableBody.innerHTML = ''; 
+    let subtotal = 0;
 
-    function isRecurringOrder() {
-        return refillSelect && refillSelect.value && refillSelect.value !== 'one-time';
-    }
+    // [แก้บั๊กที่นี่] เปลี่ยนมาใช้ Object.entries เพื่อดึง Key ออกมาเป็น productId
+    Object.entries(shoppingCart).forEach(([productId, cartItem]) => {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
 
-    function renderTotals() {
-        const shippingCost = getShippingCost();
-        const total = currentSubtotal + shippingCost;
-        subtotalEl.textContent = formatCurrency(currentSubtotal);
-        totalEl.textContent = formatCurrency(total);
-    }
+        let price = product.price;
+        // ตรวจสอบว่าเป็น Recurring หรือไม่จาก orderType
+        const isRecurring = cartItem.orderType === 'recurring';
+        
+        if (isRecurring) { price = price * 0.8; } // ลด 20%
+        
+        let itemTotal = price * cartItem.quantity;
+        subtotal += itemTotal;
 
-    function renderEmptyCart() {
-        tbody.innerHTML = `
+        // สร้างข้อความแสดง Order Type และดึง frequency มาใช้
+        let orderTypeHtml = isRecurring 
+            ? `Recurring<br><small class="text-muted">Every ${cartItem.frequency || '1 week'}</small>` 
+            : `One-time`;
+
+        let priceHtml = isRecurring 
+            ? `<td class="py-3 text-center text-success">$${price.toFixed(2)}</td>` 
+            : `<td class="py-3 text-center">$${price.toFixed(2)}</td>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+
+            <td class="py-3 text-center">${product.name}</td>
+            <td class="py-3 text-center">${orderTypeHtml}</td>
+            ${priceHtml}
+            <td class="py-3 text-center">${cartItem.quantity}</td>
+            <td class="py-3 text-center">$${itemTotal.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+
+    // Subtotal
+    tableBody.insertAdjacentHTML('beforeend', `
+        <tr>
+            <th scope="row"></th>
+            <td class="py-3 text-center"><p class="mb-0 text-dark">Subtotal</p></td>
+            <td class="py-3 text-center"></td>
+            <td class="py-3 text-center"></td>
+            <td class="py-3 text-center">
+                    <p class="mb-0 text-dark">$${subtotal.toFixed(2)}</p> 
+            </td>
+        </tr>
+    `);
+
+    let discount = 0;
+    if (subtotal > 200) {
+        discount = subtotal * 0.10;
+        tableBody.insertAdjacentHTML('beforeend', `
             <tr>
-                <td colspan="5" class="text-center py-5">
-                    <h4 class="text-secondary">ไม่มีสินค้าในตะกร้า</h4>
-                    <p class="text-muted">เพิ่มสินค้าลงในตะกร้าของคุณก่อนจะไปยังหน้าชำระเงิน</p>
-                    <a href="shop.html" class="btn btn-success mt-3">ไปช้อปปิ้งต่อ</a>
+                <th scope="row"></th>
+                <td class="py-3 text-center"><p class="mb-0 text-danger ">Discount 10%<br><small class="text-muted">(Order over $200)</small></p></td>
+                </td><td class="py-3 text-center"></td>
+                <td class="py-3 text-center"></td>
+                <td class="py-3 text-center">
+                        <p class="mb-0 text-danger">-$${discount.toFixed(2)}</p>
                 </td>
             </tr>
-        `;
-        subtotalEl.textContent = '$0.00';
-        totalEl.textContent = '$0.00';
-        placeOrderBtn.disabled = true;
+        `);
     }
 
-    function renderCheckoutItems() {
-        shoppingCart = JSON.parse(localStorage.getItem('shoppingCart')) || {};
+    let grandTotal = subtotal - discount;
+
+    // TOTAL
+    tableBody.insertAdjacentHTML('beforeend', `
+        <tr>
+            <th scope="row"></th>
+            <td class="py-3 text-center"><p class="mb-0 text-dark text-uppercase py-3">TOTAL</p></td>
+            <td class="py-3 text-center"></td><td class="py-3 text-center">
+            <td class="py-3 text-center">
+                <div>
+                    <p class="mb-0 text-dark fw-bold fs-2">$${grandTotal.toFixed(2)}</p>
+                </div>
+            </td>
+        </tr>
+    `);
+
+    // ============================================================================
+    // 5. VALIDATION & PLACE ORDER LOGIC
+    // ============================================================================
+    placeOrderBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        if (!nameInput.value.trim() || !emailInput.value.trim() || !addressInput.value.trim() || !paymentSelect.value) {
+            alert('⚠️ กรุณากรอกข้อมูลที่อยู่และการชำระเงินให้ครบถ้วน');
+            return;
+        }
+
+        if ((paymentSelect.value === 'direct-bank-transfer' || paymentSelect.value === 'credit-card') && !extraPaymentInput.value.trim()) {
+            alert('⚠️ กรุณาระบุหมายเลขบัตรเครดิต หรือ บัญชีธนาคาร');
+            return;
+        }
+
         const cartKeys = Object.keys(shoppingCart);
         if (cartKeys.length === 0) {
-            renderEmptyCart();
+            alert('🛒 ตะกร้าสินค้าว่างเปล่า กรุณาเลือกสินค้าก่อนทำการสั่งซื้อ');
+            window.location.href = 'shop.html';
             return;
         }
 
-        let html = '';
-        currentSubtotal = 0;
+        const newOrder = {
+            order_id: 'ORD-' + Math.floor(Math.random() * 100000000),
+            user_id: currentUser ? currentUser.user_id : 'guest',
+            order_date: new Date().toISOString(),
+            status: 'Pending',
+            shipping_address: addressInput.value.trim(),
+            subtotal_amount: subtotal,
+            discount_amount: discount,
+            total_amount: grandTotal,
+            customer_info: {
+                name: nameInput.value.trim(),
+                email: emailInput.value.trim()
+            },
+            payment: {
+                method: paymentSelect.value,
+                transaction_ref: extraPaymentInput.value.trim() || null,
+                status: 'Completed' 
+            },
+            // จัดเรียงข้อมูลสินค้าลงฐานข้อมูล
+            order_items: Object.entries(shoppingCart).map(([productId, item]) => {
+                const product = products.find(p => p.id === productId);
+                let price = product ? product.price : 0;
+                let name = product ? product.name : 'Unknown';
+                
+                // เช็กเงื่อนไขใหม่ให้ตรงกับ Key ของตะกร้า
+                const isRecurring = item.orderType === 'recurring'; 
+                if (isRecurring) price = price * 0.8; 
+                
+                return {
+                    product_id: productId,
+                    name: name,
+                    unit_price: price,
+                    quantity: item.quantity,
+                    is_recurring: isRecurring,
+                    frequency: item.frequency || null
+                };
+            })
+        };
 
-        const recurring = isRecurringOrder();
+        let ordersDB = JSON.parse(localStorage.getItem('ordersDB') || '[]');
+        ordersDB.push(newOrder);
+        localStorage.setItem('ordersDB', JSON.stringify(ordersDB));
 
-        cartKeys.forEach((id) => {
-            const item = shoppingCart[id];
-            const product = products.find(p => String(p.id) === String(id) || String(p.id) === String(item.id));
-            if (!product) return;
-
-            const quantity = Number(item.quantity) || 1;
-            const originalUnit = Number(product.price) || 0;
-            const discountedUnit = recurring ? originalUnit * 0.8 : originalUnit; // 20% off for recurring
-            const lineTotal = discountedUnit * quantity;
-            currentSubtotal += lineTotal;
-
-            html += `
-                <tr data-id="${id}">
-                    <th scope="row">
-                        <div class="d-flex align-items-center">
-                            <img src="${product.image}" class="img-fluid rounded-circle" style="width: 90px; height: 90px; object-fit: cover;" alt="${product.name}">
-                        </div>
-                    </th>
-                    <td class="py-4 align-middle">${product.name}</td>
-                    <td class="py-4 align-middle">
-                        <div>${formatCurrency(originalUnit)}</div>
-                        ${recurring ? `<div class="small text-success">Recurring: ${formatCurrency(discountedUnit)}</div>` : ''}
-                    </td>
-                    <td class="py-4 align-middle">${quantity}</td>
-                    <td class="py-4 align-middle">${formatCurrency(lineTotal)}</td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = html;
-        placeOrderBtn.disabled = false;
-        renderTotals();
-    }
-
-    // Update dynamic payment extra fields
-    function updatePaymentExtraFields() {
-        if (!paymentExtra || !paymentMethod) return;
-        const val = paymentMethod.value;
-        if (val === 'direct-bank-transfer') {
-            paymentExtra.innerHTML = `
-                <label class="form-label">Bank Account Number <sup>*</sup></label>
-                <input id="bank-account-number" type="text" class="form-control" placeholder="Enter bank account number">
-            `;
-        } else if (val === 'credit-card') {
-            paymentExtra.innerHTML = `
-                <label class="form-label">Credit Card Number <sup>*</sup></label>
-                <input id="credit-card-number" type="text" class="form-control" placeholder="Enter credit card number">
-            `;
-        } else {
-            paymentExtra.innerHTML = '';
-        }
-        validateForm();
-    }
-
-    // Form validation to meet Requirement 1
-    function validateForm() {
-        const cartNotEmpty = Object.keys(JSON.parse(localStorage.getItem('shoppingCart')) || {}).length > 0;
-        const nameOK = nameInput && nameInput.value.trim() !== '';
-        const emailOK = emailInput && emailInput.value.trim() !== '';
-        const addressOK = addressInput && addressInput.value.trim() !== '';
-        const refillOK = refillSelect && refillSelect.value;
-        const paymentOK = paymentMethod && paymentMethod.value;
-
-        let extrasOK = true;
-        if (paymentMethod && paymentMethod.value === 'direct-bank-transfer') {
-            const bankEl = document.getElementById('bank-account-number');
-            extrasOK = bankEl && bankEl.value.trim() !== '';
-        }
-        if (paymentMethod && paymentMethod.value === 'credit-card') {
-            const cardEl = document.getElementById('credit-card-number');
-            extrasOK = cardEl && cardEl.value.trim() !== '';
-        }
-
-        const ok = cartNotEmpty && nameOK && emailOK && addressOK && refillOK && paymentOK && extrasOK;
-        placeOrderBtn.disabled = !ok;
-        return ok;
-    }
-
-    // Autofill for logged-in users per Requirement 2
-    (function autofillLoggedIn() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        if (isLoggedIn && currentUser) {
-            if (nameInput && (nameInput.value.trim() === '' || nameInput.value === null)) nameInput.value = currentUser.username || '';
-            if (emailInput && (emailInput.value.trim() === '' || emailInput.value === null)) emailInput.value = currentUser.email || '';
-        }
-    })();
-
-    // Event listeners
-    shippingInputs.forEach(input => {
-        input.addEventListener('change', renderTotals);
-    });
-
-    if (refillSelect) {
-        refillSelect.addEventListener('change', () => {
-            renderCheckoutItems();
-        });
-    }
-
-    if (paymentMethod) {
-        paymentMethod.addEventListener('change', updatePaymentExtraFields);
-    }
-
-    // Re-validate when user edits key fields
-    [nameInput, emailInput, addressInput].forEach(el => {
-        if (el) el.addEventListener('input', validateForm);
-    });
-
-    // also listen to dynamic extra inputs (delegate via container)
-    if (paymentExtra) {
-        paymentExtra.addEventListener('input', validateForm);
-    }
-
-    placeOrderBtn.addEventListener('click', () => {
-        if (!validateForm()) {
-            alert('Please complete all required fields before placing your order.');
-            return;
-        }
-
-        // Everything validated — proceed with demo order placement
-        alert('Order placed successfully! This is a front-end demo and no payment is processed.');
-        // Optionally clear cart and update UI
         localStorage.removeItem('shoppingCart');
-        renderCheckoutItems();
-        // reset totals
-        renderTotals();
+        alert('🎉 สั่งซื้อสินค้าสำเร็จ! ข้อมูลคำสั่งซื้อถูกบันทึกเข้าระบบเรียบร้อยแล้ว');
+        window.location.href = 'index.html'; 
     });
-
-    // initial render
-    updatePaymentExtraFields();
-    renderCheckoutItems();
-    validateForm();
 });
