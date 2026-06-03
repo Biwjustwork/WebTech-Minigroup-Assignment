@@ -285,8 +285,38 @@ feat(security): enforce api gatekeeper validation
 feat(database): add transaction helper and integrity audit
 feat(inventory): add pre-checkout stock reservation
 feat(discounts): add dynamic checkout discount engine
+feat(recommendations): add co-purchase product recommendations
 docs(backend): document backend architecture decisions
 ```
+
+## 21. Bonus C: Personalized Recommendations
+
+เพิ่ม endpoint:
+
+```text
+GET /api/products/:productId/recommendations
+```
+
+แนวคิด:
+
+- ใช้ `orders` และ `order_items` เป็นประวัติการซื้อ
+- หา order ที่มีสินค้าที่ user กำลังดู
+- join กลับไปหา product อื่นใน order เดียวกัน
+- group/count เพื่อหา product ที่ถูกซื้อร่วมกันบ่อยที่สุด
+
+SQL strategy:
+
+```text
+orders -> target order_items -> recommended order_items -> products
+```
+
+Seed เพิ่ม demo order history เล็กน้อยใน `npm run db:seed` เพื่อให้ endpoint มีข้อมูลแสดงผลทันที
+
+จุดสำคัญ:
+
+- เป็น Complex SQL Joins ตาม Bonus C
+- ไม่ใช้ hard-coded recommendation list
+- recommendation score มาจากจำนวน co-purchase จริงใน relational tables
 
 ## 20. Bonus B: Dynamic Discount Service
 

@@ -188,3 +188,14 @@ Checkout stores the audit values on `orders`:
 - `dynamic_discount_reason`
 
 The checkout response includes `recalculatedBy: "backend"`.
+
+## Bonus C: Personalized Recommendations
+
+Recommendations use SQL joins over historical orders:
+
+```text
+GET /api/products/prod_01/recommendations
+GET /api/products/prod_01/recommendations?limit=3
+```
+
+The API returns products most commonly purchased in the same orders by other logged-in users.

@@ -27,6 +27,29 @@ const productStockByCategory = {
   'Zero Waste': 24
 };
 
+const demoOrderHistory = [
+  {
+    orderId: 'seed_order_001',
+    userId: 'user_102',
+    items: ['prod_01', 'prod_07', 'prod_08']
+  },
+  {
+    orderId: 'seed_order_002',
+    userId: 'user_103',
+    items: ['prod_01', 'prod_07', 'prod_14']
+  },
+  {
+    orderId: 'seed_order_003',
+    userId: 'user_102',
+    items: ['prod_01', 'prod_08', 'prod_15']
+  },
+  {
+    orderId: 'seed_order_004',
+    userId: 'user_103',
+    items: ['prod_02', 'prod_10', 'prod_16']
+  }
+];
+
 function readJsonFile(filename) {
   const filePath = path.join(mockDataDir, filename);
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -126,6 +149,51 @@ async function seedUsers(db, users) {
   }
 }
 
+async function seedRecommendationHistory(db) {
+  for (const order of demoOrderHistory) {
+    await run(
+      db,
+      `
+        INSERT INTO orders (
+          order_id,
+          user_id,
+          is_guest_checkout,
+          address,
+          subtotal_amount,
+          subscription_discount_amount,
+          dynamic_discount_amount,
+          total_amount,
+          order_status,
+          updated_at
+        )
+        VALUES (?, ?, 0, 'Seed recommendation history', 0, 0, 0, 0, 'completed', datetime('now'))
+      `,
+      [order.orderId, order.userId]
+    );
+
+    for (const productId of order.items) {
+      await run(
+        db,
+        `
+          INSERT INTO order_items (
+            order_item_id,
+            order_id,
+            product_id,
+            quantity,
+            is_recurring,
+            frequency,
+            unit_price,
+            discount_applied,
+            line_total
+          )
+          VALUES (?, ?, ?, 1, 0, NULL, 0, 0, 0)
+        `,
+        [`seed_order_item_${order.orderId}_${productId}`, order.orderId, productId]
+      );
+    }
+  }
+}
+
 async function resetDemoData(db) {
   // Seed is a development/demo reset, so remove transactional rows first to
   // satisfy foreign keys, then refresh products and demo users from mock data.
@@ -152,6 +220,7 @@ async function seedDatabase() {
       await resetDemoData(db);
       await seedProducts(db, products);
       await seedUsers(db, users);
+      await seedRecommendationHistory(db);
     });
 
     return {

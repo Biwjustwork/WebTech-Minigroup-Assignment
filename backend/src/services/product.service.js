@@ -169,8 +169,77 @@ async function getProduct(productId) {
   }
 }
 
+async function getRecommendationsForProduct(productId, query) {
+  const limit = Math.min(parsePositiveInteger(query.limit, 'limit', 5), maxLimit);
+  const db = await openDatabase();
+
+  try {
+    const targetProduct = await get(
+      db,
+      'SELECT product_id FROM products WHERE product_id = ?',
+      [productId]
+    );
+
+    if (!targetProduct) {
+      throw createHttpError(404, 'PRODUCT_NOT_FOUND', 'Product was not found.');
+    }
+
+    const rows = await all(
+      db,
+      `
+        SELECT
+          recommended.product_id,
+          recommended.name,
+          recommended.category,
+          recommended.image,
+          recommended.description,
+          recommended.price,
+          recommended.stock_quantity,
+          COUNT(*) AS co_purchase_count,
+          COUNT(DISTINCT target_orders.user_id) AS user_count
+        FROM order_items target_items
+        JOIN orders target_orders
+          ON target_orders.order_id = target_items.order_id
+        JOIN order_items recommended_items
+          ON recommended_items.order_id = target_items.order_id
+          AND recommended_items.product_id <> target_items.product_id
+        JOIN products recommended
+          ON recommended.product_id = recommended_items.product_id
+        WHERE target_items.product_id = ?
+          AND target_orders.user_id IS NOT NULL
+        GROUP BY
+          recommended.product_id,
+          recommended.name,
+          recommended.category,
+          recommended.image,
+          recommended.description,
+          recommended.price,
+          recommended.stock_quantity
+        ORDER BY co_purchase_count DESC, recommended.product_id
+        LIMIT ?
+      `,
+      [productId, limit]
+    );
+
+    return {
+      data: rows.map((row) => ({
+        ...mapProduct(row),
+        recommendationScore: Number(row.co_purchase_count),
+        purchasedByUsers: Number(row.user_count)
+      })),
+      meta: {
+        productId,
+        limit,
+        strategy: 'co_purchase_sql_join'
+      }
+    };
+  } finally {
+    await closeDatabase(db);
+  }
+}
+
 module.exports = {
   getProduct,
+  getRecommendationsForProduct,
   getProducts
 };
-

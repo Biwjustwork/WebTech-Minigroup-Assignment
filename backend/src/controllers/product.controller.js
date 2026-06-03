@@ -1,5 +1,6 @@
 const {
   getProduct,
+  getRecommendationsForProduct,
   getProducts
 } = require('../services/product.service');
 
@@ -13,8 +14,13 @@ async function getProductById(req, res) {
   res.status(200).json({ data: product });
 }
 
+async function getProductRecommendations(req, res) {
+  const result = await getRecommendationsForProduct(req.params.productId, req.query);
+  res.status(200).json(result);
+}
+
 module.exports = {
   getProductById,
+  getProductRecommendations,
   listProducts
 };
-
