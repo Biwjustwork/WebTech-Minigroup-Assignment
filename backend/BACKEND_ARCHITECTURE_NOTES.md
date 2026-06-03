@@ -284,8 +284,48 @@ feat(discounts): centralize eco-refill subscription pricing
 feat(security): enforce api gatekeeper validation
 feat(database): add transaction helper and integrity audit
 feat(inventory): add pre-checkout stock reservation
+feat(discounts): add dynamic checkout discount engine
 docs(backend): document backend architecture decisions
 ```
+
+## 20. Bonus B: Dynamic Discount Service
+
+เพิ่ม service:
+
+```text
+src/services/discount.service.js
+```
+
+Rules:
+
+- cart total หลัง line-item discounts > `$200` ได้ส่วนลด 10%
+- ซื้อสินค้าหมวด `Fresh` มากกว่า 3 ชิ้น ได้ส่วนลด 15%
+- ถ้าเข้าได้หลาย rule backend เลือกส่วนลดที่มากที่สุด
+
+เพิ่ม migration:
+
+```text
+database/migrations/003_order_discount_audit.sql
+```
+
+เพิ่ม audit columns ใน `orders`:
+
+- `subtotal_amount`
+- `subscription_discount_amount`
+- `dynamic_discount_amount`
+- `dynamic_discount_reason`
+
+Checkout flow:
+
+```text
+line item pricing -> subscription discount -> dynamic discount -> final total
+```
+
+จุดสำคัญ:
+
+- frontend ห้ามส่ง total/discount มาเอง เพราะ Gatekeeper reject อยู่แล้ว
+- DiscountService คำนวณจาก lineItems ที่ backend สร้างจาก SQL product data
+- response มี `recalculatedBy: "backend"` เพื่อพิสูจน์ว่า calculation เกิดที่ backend
 
 ## 19. Bonus A: Pre-Checkout Inventory Check
 

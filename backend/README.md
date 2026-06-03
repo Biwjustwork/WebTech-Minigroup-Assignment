@@ -169,3 +169,22 @@ Checkout runs stock logic inside the same transaction as order creation:
 3. Reserve stock with an atomic conditional update.
 4. Continue inserting `orders`, `order_items`, and bypassed `payments`.
 5. Roll back the whole transaction if any step fails.
+
+## Bonus B: Dynamic Discount Service
+
+Order-level discount logic is centralized in `src/services/discount.service.js`.
+
+Rules:
+
+- 10% off when the recalculated cart total is greater than `$200`
+- 15% off when more than 3 items are from the `Fresh` category
+- If multiple rules match, the backend applies the best discount
+
+Checkout stores the audit values on `orders`:
+
+- `subtotal_amount`
+- `subscription_discount_amount`
+- `dynamic_discount_amount`
+- `dynamic_discount_reason`
+
+The checkout response includes `recalculatedBy: "backend"`.

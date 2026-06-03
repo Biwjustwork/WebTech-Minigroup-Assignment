@@ -11,6 +11,7 @@ const {
   normalizeCartItemPayload
 } = require('./cart.service');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
+const { calculateDynamicDiscount } = require('./discount.service');
 const { verifyAndReserveStock } = require('./inventory.service');
 const { createHttpError } = require('../utils/httpError');
 const { assertNoClientCalculatedFields } = require('../utils/gatekeeper');
@@ -142,6 +143,7 @@ async function processCheckout({ user, payload, sessionId }) {
         lineItems.push({
           productId: product.product_id,
           productName: product.name,
+          category: product.category,
           quantity: item.quantity,
           isRecurring: item.isRecurring,
           frequency: item.frequency,
@@ -154,7 +156,8 @@ async function processCheckout({ user, payload, sessionId }) {
         });
       }
 
-      const total = subtotal - discountTotal;
+      const dynamicPricing = calculateDynamicDiscount(lineItems);
+      const total = dynamicPricing.total;
 
       await run(
         db,
@@ -166,11 +169,15 @@ async function processCheckout({ user, payload, sessionId }) {
             guest_name,
             guest_email,
             address,
+            subtotal_amount,
+            subscription_discount_amount,
+            dynamic_discount_amount,
+            dynamic_discount_reason,
             total_amount,
             order_status,
             updated_at
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, 'placed', datetime('now'))
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'placed', datetime('now'))
         `,
         [
           orderId,
@@ -179,6 +186,10 @@ async function processCheckout({ user, payload, sessionId }) {
           user ? null : checkoutDetails.guestName,
           user ? null : checkoutDetails.guestEmail,
           checkoutDetails.address,
+          subtotal,
+          discountTotal,
+          dynamicPricing.dynamicDiscount,
+          dynamicPricing.dynamicDiscountReason,
           total
         ]
       );
@@ -244,7 +255,11 @@ async function processCheckout({ user, payload, sessionId }) {
           items: lineItems,
           summary: {
             subtotal,
-            discountTotal,
+            subscriptionDiscountTotal: discountTotal,
+            dynamicDiscountTotal: dynamicPricing.dynamicDiscount,
+            dynamicDiscountRate: dynamicPricing.dynamicDiscountRate,
+            dynamicDiscountReason: dynamicPricing.dynamicDiscountReason,
+            recalculatedBy: 'backend',
             total
           }
         }
