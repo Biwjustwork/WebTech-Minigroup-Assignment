@@ -4,7 +4,8 @@ const {
   closeDatabase,
   get,
   openDatabase,
-  run
+  run,
+  withTransaction
 } = require('../database/connection');
 const {
   ensureCart,
@@ -125,9 +126,7 @@ async function processCheckout({ user, payload, sessionId }) {
   const db = await openDatabase();
 
   try {
-    await run(db, 'BEGIN');
-
-    try {
+    return await withTransaction(db, async () => {
       const payloadItems = getCheckoutItems(payload.items);
       const cartResult = payloadItems ? { cart: null, items: payloadItems } : await loadCartItems(db, { user, sessionId: payload.cartSessionId || sessionId });
       const items = cartResult.items;
@@ -268,8 +267,6 @@ async function processCheckout({ user, payload, sessionId }) {
         await run(db, 'UPDATE carts SET status = ?, updated_at = datetime(\'now\') WHERE cart_id = ?', ['checked_out', cartResult.cart.cart_id]);
       }
 
-      await run(db, 'COMMIT');
-
       return {
         data: {
           orderId,
@@ -285,10 +282,7 @@ async function processCheckout({ user, payload, sessionId }) {
           }
         }
       };
-    } catch (error) {
-      await run(db, 'ROLLBACK');
-      throw error;
-    }
+    });
   } finally {
     await closeDatabase(db);
   }

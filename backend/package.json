@@ -4,6 +4,7 @@
   "description": "Backend API for The Smart-Niche Marketplace assignment.",
   "main": "src/server.js",
   "scripts": {
+    "db:audit": "node scripts/audit-db.js",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
     "dev": "node --watch src/server.js",

@@ -22,6 +22,7 @@ cp .env.example .env
 npm install
 npm run db:migrate
 npm run db:seed
+npm run db:audit
 npm run dev
 ```
 
@@ -151,6 +152,8 @@ The API uses backend-side guardrails:
 - `helmet` security headers
 - JSON payload limit of `100kb`
 - parameterized SQL helpers
+- centralized `withTransaction` helper for atomic writes
+- `npm run db:audit` to verify required tables and foreign keys
 - strict cart/checkout item validation
 - server-side price, discount, stock, and total calculation
 - rejection of client-calculated fields with `CLIENT_CALCULATION_REJECTED`

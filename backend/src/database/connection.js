@@ -86,6 +86,19 @@ async function exec(db, sql) {
   db.exec(sql);
 }
 
+async function withTransaction(db, work) {
+  await run(db, 'BEGIN');
+
+  try {
+    const result = await work();
+    await run(db, 'COMMIT');
+    return result;
+  } catch (error) {
+    await run(db, 'ROLLBACK');
+    throw error;
+  }
+}
+
 async function closeDatabase(db) {
   // Persist the in-memory SQLite database to backend/data/app.sqlite before
   // closing. API code must call this after write operations until we introduce a
@@ -105,5 +118,6 @@ module.exports = {
   get,
   openDatabase,
   resolveDatabasePath,
-  run
+  run,
+  withTransaction
 };

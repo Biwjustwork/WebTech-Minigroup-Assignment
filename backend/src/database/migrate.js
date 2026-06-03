@@ -5,7 +5,8 @@ const {
   closeDatabase,
   exec,
   openDatabase,
-  run
+  run,
+  withTransaction
 } = require('./connection');
 
 const migrationsDir = path.resolve(__dirname, '../../database/migrations');
@@ -45,18 +46,11 @@ async function migrate() {
 
       const sql = fs.readFileSync(path.join(migrationsDir, filename), 'utf8');
 
-      // Each migration runs inside a transaction. If any statement fails, the
-      // database rolls back and never gets stuck in a half-applied schema.
-      await run(db, 'BEGIN');
-      try {
+      await withTransaction(db, async () => {
         await exec(db, sql);
         await run(db, 'INSERT INTO schema_migrations (filename) VALUES (?)', [filename]);
-        await run(db, 'COMMIT');
         applied.push(filename);
-      } catch (error) {
-        await run(db, 'ROLLBACK');
-        throw error;
-      }
+      });
     }
 
     return { applied };

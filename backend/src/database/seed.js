@@ -4,7 +4,8 @@ const bcrypt = require('bcryptjs');
 const {
   closeDatabase,
   openDatabase,
-  run
+  run,
+  withTransaction
 } = require('./connection');
 const { migrate } = require('./migrate');
 
@@ -147,19 +148,11 @@ async function seedDatabase() {
   const users = readJsonFile('users.json');
 
   try {
-    // Product and user seed operations are treated as one unit. If one insert
-    // fails, the transaction rolls back and avoids a partially seeded demo DB.
-    await run(db, 'BEGIN');
-
-    try {
+    await withTransaction(db, async () => {
       await resetDemoData(db);
       await seedProducts(db, products);
       await seedUsers(db, users);
-      await run(db, 'COMMIT');
-    } catch (error) {
-      await run(db, 'ROLLBACK');
-      throw error;
-    }
+    });
 
     return {
       products: products.length,

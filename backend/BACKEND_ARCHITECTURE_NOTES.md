@@ -282,6 +282,7 @@ feat(cart): add persistent cart api
 feat(checkout): add transactional order placement
 feat(discounts): centralize eco-refill subscription pricing
 feat(security): enforce api gatekeeper validation
+feat(database): add transaction helper and integrity audit
 docs(backend): document backend architecture decisions
 ```
 
@@ -424,3 +425,81 @@ helmet
 - ตรงกับ Gatekeeper Pattern
 - frontend ส่งได้แค่ intent เช่น productId, quantity, orderType
 - backend เป็นผู้ตัดสินข้อมูลที่มีผลต่อเงินและ stock
+
+## 17. SQL Safety
+
+SQL access ใช้ helper กลางใน:
+
+```text
+src/database/connection.js
+```
+
+หลักการ:
+
+- `run(db, sql, params)`
+- `get(db, sql, params)`
+- `all(db, sql, params)`
+
+ทุก query ที่รับค่าจาก request ใช้ `?` placeholders และส่งค่าแยกใน `params`
+
+ตัวอย่างแนวคิด:
+
+```text
+WHERE product_id = ?
+params: [productId]
+```
+
+ไม่ใช้ string interpolation กับ user input เช่น:
+
+```text
+WHERE product_id = '${productId}'
+```
+
+ผลลัพธ์:
+
+- ลดความเสี่ยง SQL Injection
+- service layer อ่านง่ายขึ้น
+- audit ได้ว่าข้อมูลจาก client ไม่ถูกเอาไปต่อ SQL string ตรง ๆ
+
+## 18. Transaction / Relational Integrity
+
+เพิ่ม helper:
+
+```text
+withTransaction(db, async () => { ... })
+```
+
+ใช้ใน:
+
+- migration
+- seed
+- checkout
+
+หลักการ:
+
+- เริ่มด้วย `BEGIN`
+- ถ้าทุกอย่างสำเร็จ `COMMIT`
+- ถ้ามี error `ROLLBACK`
+
+Checkout จึงเป็น atomic flow:
+
+- insert order
+- decrement stock
+- insert order_items
+- insert payment bypass
+- mark cart checked_out
+
+ถ้าขั้นใดขั้นหนึ่ง fail เช่น stock ไม่พอ ระบบ rollback ทั้งหมด
+
+เพิ่ม audit script:
+
+```text
+npm run db:audit
+```
+
+ตรวจ:
+
+- foreign key เปิดใช้งาน
+- table สำคัญครบ
+- foreign key constraints มีจริงในตาราง relationship
+- `PRAGMA foreign_key_check` ไม่มีปัญหา
