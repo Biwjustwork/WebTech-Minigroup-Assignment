@@ -157,3 +157,15 @@ The API uses backend-side guardrails:
 - strict cart/checkout item validation
 - server-side price, discount, stock, and total calculation
 - rejection of client-calculated fields with `CLIENT_CALCULATION_REJECTED`
+
+## Bonus A: Pre-Checkout Inventory Check
+
+Inventory logic is centralized in `src/services/inventory.service.js`.
+
+Checkout runs stock logic inside the same transaction as order creation:
+
+1. Read product price and `stock_quantity` from SQL.
+2. Reject with `409 OUT_OF_STOCK` if stock is insufficient.
+3. Reserve stock with an atomic conditional update.
+4. Continue inserting `orders`, `order_items`, and bypassed `payments`.
+5. Roll back the whole transaction if any step fails.

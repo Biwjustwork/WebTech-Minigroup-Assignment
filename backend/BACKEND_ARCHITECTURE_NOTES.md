@@ -283,8 +283,38 @@ feat(checkout): add transactional order placement
 feat(discounts): centralize eco-refill subscription pricing
 feat(security): enforce api gatekeeper validation
 feat(database): add transaction helper and integrity audit
+feat(inventory): add pre-checkout stock reservation
 docs(backend): document backend architecture decisions
 ```
+
+## 19. Bonus A: Pre-Checkout Inventory Check
+
+เพิ่ม service:
+
+```text
+src/services/inventory.service.js
+```
+
+หน้าที่:
+
+- query product จาก SQL ก่อน checkout
+- ตรวจ `stock_quantity` กับจำนวนที่ user ต้องการซื้อ
+- ถ้า stock ไม่พอ ตอบ `409 OUT_OF_STOCK`
+- reserve stock ด้วย conditional update:
+
+```text
+UPDATE products
+SET stock_quantity = stock_quantity - ?
+WHERE product_id = ? AND stock_quantity >= ?
+```
+
+จุดสำคัญ:
+
+- logic นี้ถูกเรียกใน `withTransaction` ของ checkout
+- ถ้า order insert, order_items insert, หรือ payment insert fail ระบบ rollback stock กลับ
+- ใช้ทั้ง pre-check read และ atomic update guard เพื่ออธิบาย concurrency logic ได้ชัด
+
+นี่ตรงกับ Bonus A: The "Stock-Check" Store เพราะ OrderService ตรวจ Product table ภายใน transaction ก่อนยอมให้ checkout สำเร็จ
 
 ## 12. Authentication API
 

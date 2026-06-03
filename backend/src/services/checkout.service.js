@@ -2,7 +2,6 @@ const { randomUUID } = require('crypto');
 const {
   all,
   closeDatabase,
-  get,
   openDatabase,
   run,
   withTransaction
@@ -12,6 +11,7 @@ const {
   normalizeCartItemPayload
 } = require('./cart.service');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
+const { verifyAndReserveStock } = require('./inventory.service');
 const { createHttpError } = require('../utils/httpError');
 const { assertNoClientCalculatedFields } = require('../utils/gatekeeper');
 
@@ -101,24 +101,6 @@ function calculateNextDeliveryDate(frequency) {
   return date.toISOString();
 }
 
-async function getProductForCheckout(db, productId) {
-  const product = await get(
-    db,
-    `
-      SELECT product_id, name, category, price, stock_quantity
-      FROM products
-      WHERE product_id = ?
-    `,
-    [productId]
-  );
-
-  if (!product) {
-    throw createHttpError(404, 'PRODUCT_NOT_FOUND', `Product ${productId} was not found.`);
-  }
-
-  return product;
-}
-
 async function processCheckout({ user, payload, sessionId }) {
   assertNoClientCalculatedFields(payload);
 
@@ -141,13 +123,12 @@ async function processCheckout({ user, payload, sessionId }) {
       let discountTotal = 0;
 
       for (const item of items) {
-        const product = await getProductForCheckout(db, item.productId);
+        const product = await verifyAndReserveStock(db, {
+          productId: item.productId,
+          quantity: item.quantity
+        });
 
-        if (Number(product.stock_quantity) < item.quantity) {
-          throw createHttpError(409, 'OUT_OF_STOCK', `${product.name} is out of stock.`);
-        }
-
-        const unitPrice = Number(product.price);
+        const unitPrice = product.price;
         const pricing = calculateSubscriptionLinePricing({
           isLoggedIn: Boolean(user),
           isRecurring: item.isRecurring,
@@ -203,20 +184,6 @@ async function processCheckout({ user, payload, sessionId }) {
       );
 
       for (const item of lineItems) {
-        const stockUpdate = await run(
-          db,
-          `
-            UPDATE products
-            SET stock_quantity = stock_quantity - ?, updated_at = datetime('now')
-            WHERE product_id = ? AND stock_quantity >= ?
-          `,
-          [item.quantity, item.productId, item.quantity]
-        );
-
-        if (stockUpdate.changes === 0) {
-          throw createHttpError(409, 'OUT_OF_STOCK', `${item.productName} is out of stock.`);
-        }
-
         await run(
           db,
           `
