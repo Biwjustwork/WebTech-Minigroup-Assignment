@@ -56,6 +56,18 @@ function auditEnvironment() {
   });
 
   checks.push({
+    name: 'supabase-url-present',
+    ok: Boolean(config.supabaseUrl),
+    message: 'SUPABASE_URL is configured.'
+  });
+
+  checks.push({
+    name: 'supabase-anon-key-present',
+    ok: Boolean(config.supabaseAnonKey),
+    message: 'SUPABASE_ANON_KEY is configured.'
+  });
+
+  checks.push({
     name: 'jwt-secret-present',
     ok: Boolean(config.jwtSecret),
     message: 'JWT_SECRET is configured.'

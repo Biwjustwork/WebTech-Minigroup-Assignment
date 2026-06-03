@@ -13,7 +13,9 @@ const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret',
   databaseUrl: process.env.DATABASE_URL || './data/app.sqlite',
-  corsOrigin: process.env.CORS_ORIGIN || '*'
+  corsOrigin: process.env.CORS_ORIGIN || '*',
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || ''
 };
 
 module.exports = { config };

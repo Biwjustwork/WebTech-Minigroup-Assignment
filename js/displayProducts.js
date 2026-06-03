@@ -14,6 +14,11 @@ let currentMaxPrice = Infinity;
 let debounceTimeout = null; 
 
 async function fetchProducts(path) {
+    if (window.EcoApi) {
+        const result = await window.EcoApi.listProducts('?limit=50');
+        return result.data || [];
+    }
+
     const response = await fetch(path);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
