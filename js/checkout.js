@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ============================================================================
     const tableBody = document.querySelector('.table tbody');
     const paymentSelect = document.querySelector('select[name="payment_method"]');
-    const placeOrderBtn = document.querySelector('button.text-success'); // ปุ่ม Place Order
+    const placeOrderBtn = document.getElementById('placeOrderBtn'); // ปุ่ม Place Order
     
     // ค้นหาช่อง Input จาก Placeholder และ Type 
     const inputs = document.querySelectorAll('.form-control');
