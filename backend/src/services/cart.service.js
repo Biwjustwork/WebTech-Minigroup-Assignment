@@ -8,6 +8,10 @@ const {
 } = require('../database/connection');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
 const { createHttpError } = require('../utils/httpError');
+const {
+  assertAllowedOrderType,
+  assertNoClientCalculatedFields
+} = require('../utils/gatekeeper');
 
 function createCartId() {
   return `cart_${randomUUID()}`;
@@ -41,6 +45,8 @@ function normalizeQuantity(value, fallback = 1) {
 }
 
 function normalizeIsRecurring(payload) {
+  assertAllowedOrderType(payload.orderType, 'INVALID_CART_ITEM');
+
   if (payload.isRecurring !== undefined) {
     return Boolean(payload.isRecurring);
   }
@@ -53,6 +59,8 @@ function normalizeIsRecurring(payload) {
 }
 
 function normalizeCartItemPayload(payload, fallbackProductId) {
+  assertNoClientCalculatedFields(payload);
+
   const productId = String(payload.productId || payload.product_id || fallbackProductId || '').trim();
 
   if (!productId) {

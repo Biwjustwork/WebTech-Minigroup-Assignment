@@ -12,6 +12,7 @@ const {
 } = require('./cart.service');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
 const { createHttpError } = require('../utils/httpError');
+const { assertNoClientCalculatedFields } = require('../utils/gatekeeper');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -118,6 +119,8 @@ async function getProductForCheckout(db, productId) {
 }
 
 async function processCheckout({ user, payload, sessionId }) {
+  assertNoClientCalculatedFields(payload);
+
   const checkoutDetails = validateCheckoutPayload(payload, user);
   const db = await openDatabase();
 

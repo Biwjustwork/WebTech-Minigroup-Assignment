@@ -281,6 +281,7 @@ feat(auth): add registration login and jwt verification
 feat(cart): add persistent cart api
 feat(checkout): add transactional order placement
 feat(discounts): centralize eco-refill subscription pricing
+feat(security): enforce api gatekeeper validation
 docs(backend): document backend architecture decisions
 ```
 
@@ -388,3 +389,38 @@ else:
 - checkout จะคำนวณใหม่จาก product price ใน SQL
 - `order_items.discount_applied` เก็บส่วนลดจริงที่ backend ใช้ ณ เวลาสั่งซื้อ
 - response มี `discountRate` และ `discountReason` เพื่ออธิบายว่า backend ใช้ rule ใด
+
+## 16. Security API / Gatekeeper Pattern
+
+เพิ่ม utility:
+
+```text
+src/utils/gatekeeper.js
+```
+
+เพิ่ม dependency:
+
+```text
+helmet
+```
+
+สิ่งที่ enforce:
+
+- security headers ผ่าน `helmet`
+- จำกัด JSON payload เป็น `100kb`
+- reject client-calculated fields เช่น `price`, `unitPrice`, `subtotal`, `discount`, `lineTotal`, `total`
+- validate `orderType` ให้เป็น `one-time` หรือ `recurring`
+- checkout ยัง query product price/stock จาก SQL เสมอ
+- ส่วนลดและยอดรวมคำนวณใน backend เท่านั้น
+
+ถ้า frontend ส่งราคา/ยอดรวมมาเอง backend จะตอบ:
+
+```text
+400 CLIENT_CALCULATION_REJECTED
+```
+
+เหตุผล:
+
+- ตรงกับ Gatekeeper Pattern
+- frontend ส่งได้แค่ intent เช่น productId, quantity, orderType
+- backend เป็นผู้ตัดสินข้อมูลที่มีผลต่อเงินและ stock

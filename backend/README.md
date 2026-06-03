@@ -130,6 +130,8 @@ Direct checkout payloads are also supported:
 
 Checkout recalculates price, discount, stock, and totals on the backend. Payment is recorded as `bypassed`.
 
+Client-sent calculated fields are rejected. Do not send `price`, `unitPrice`, `subtotal`, `discount`, `lineTotal`, or `total`; the backend calculates them from SQL product data.
+
 ## Eco-Refill Subscription Discount
 
 Subscription pricing is centralized in `src/services/subscriptionDiscount.service.js`.
@@ -141,3 +143,14 @@ Apply 20% line-item discount only when item is recurring AND the user is logged 
 ```
 
 Guest recurring carts/orders keep the normal one-time price. Checkout records the final `discount_applied` in `order_items`.
+
+## Gatekeeper Security
+
+The API uses backend-side guardrails:
+
+- `helmet` security headers
+- JSON payload limit of `100kb`
+- parameterized SQL helpers
+- strict cart/checkout item validation
+- server-side price, discount, stock, and total calculation
+- rejection of client-calculated fields with `CLIENT_CALCULATION_REJECTED`
