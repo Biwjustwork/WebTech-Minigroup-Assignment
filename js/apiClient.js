@@ -10,6 +10,7 @@
         return localStorage.getItem('ecoCartSessionId') || '';
     }
 
+    function saveCartSessionId(body) {
         const sessionId = body?.data?.cartSessionId || body?.cartSessionId;
         if (sessionId) {
             localStorage.setItem('ecoCartSessionId', sessionId);
