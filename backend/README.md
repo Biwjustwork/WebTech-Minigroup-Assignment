@@ -129,3 +129,15 @@ Direct checkout payloads are also supported:
 ```
 
 Checkout recalculates price, discount, stock, and totals on the backend. Payment is recorded as `bypassed`.
+
+## Eco-Refill Subscription Discount
+
+Subscription pricing is centralized in `src/services/subscriptionDiscount.service.js`.
+
+Rule:
+
+```text
+Apply 20% line-item discount only when item is recurring AND the user is logged in.
+```
+
+Guest recurring carts/orders keep the normal one-time price. Checkout records the final `discount_applied` in `order_items`.

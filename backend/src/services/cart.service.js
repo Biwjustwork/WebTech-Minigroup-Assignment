@@ -6,9 +6,8 @@ const {
   openDatabase,
   run
 } = require('../database/connection');
+const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
 const { createHttpError } = require('../utils/httpError');
-
-const subscriptionDiscountRate = 0.2;
 
 function createCartId() {
   return `cart_${randomUUID()}`;
@@ -128,8 +127,13 @@ async function assertProductExists(db, productId) {
 function mapCartRow(row, isLoggedIn) {
   const quantity = Number(row.quantity);
   const unitPrice = Number(row.price);
-  const subtotal = unitPrice * quantity;
-  const discount = Number(row.is_recurring) === 1 && isLoggedIn ? subtotal * subscriptionDiscountRate : 0;
+  const isRecurring = Number(row.is_recurring) === 1;
+  const pricing = calculateSubscriptionLinePricing({
+    isLoggedIn,
+    isRecurring,
+    quantity,
+    unitPrice
+  });
 
   return {
     productId: row.product_id,
@@ -144,12 +148,14 @@ function mapCartRow(row, isLoggedIn) {
       stock_quantity: Number(row.stock_quantity)
     },
     quantity,
-    orderType: Number(row.is_recurring) === 1 ? 'recurring' : 'one-time',
-    isRecurring: Number(row.is_recurring) === 1,
+    orderType: isRecurring ? 'recurring' : 'one-time',
+    isRecurring,
     frequency: row.frequency,
     unitPrice,
-    discount,
-    lineTotal: subtotal - discount
+    discount: pricing.discount,
+    discountRate: pricing.discountRate,
+    discountReason: pricing.discountReason,
+    lineTotal: pricing.lineTotal
   };
 }
 
@@ -316,7 +322,5 @@ module.exports = {
   addCartItem,
   normalizeCartItemPayload,
   removeCartItem,
-  subscriptionDiscountRate,
   updateCartItem
 };
-

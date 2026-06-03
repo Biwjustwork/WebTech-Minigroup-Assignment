@@ -280,6 +280,7 @@ feat(products): add product catalog api
 feat(auth): add registration login and jwt verification
 feat(cart): add persistent cart api
 feat(checkout): add transactional order placement
+feat(discounts): centralize eco-refill subscription pricing
 docs(backend): document backend architecture decisions
 ```
 
@@ -357,3 +358,33 @@ POST /api/checkout
 - rollback ทั้งหมดถ้ามี error เช่น stock ไม่พอ
 
 นี่คือ Gatekeeper Pattern: frontend ส่งแค่ intent แต่ backend เป็นคนตัดสินราคาจริง ส่วนลดจริง และ stock จริง
+
+## 15. Eco-Refill Subscription Discount Logic
+
+เพิ่ม service:
+
+```text
+src/services/subscriptionDiscount.service.js
+```
+
+Rule:
+
+```text
+if item is recurring AND user is logged in:
+  apply 20% line-item discount
+else:
+  no subscription discount
+```
+
+จุดที่ใช้ service นี้:
+
+- Cart preview
+- Checkout/order placement
+
+เหตุผล:
+
+- logic อยู่ฝั่ง backend service layer
+- frontend เปลี่ยนราคาเองไม่ได้
+- checkout จะคำนวณใหม่จาก product price ใน SQL
+- `order_items.discount_applied` เก็บส่วนลดจริงที่ backend ใช้ ณ เวลาสั่งซื้อ
+- response มี `discountRate` และ `discountReason` เพื่ออธิบายว่า backend ใช้ rule ใด

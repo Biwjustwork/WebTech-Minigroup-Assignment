@@ -8,9 +8,9 @@ const {
 } = require('../database/connection');
 const {
   ensureCart,
-  normalizeCartItemPayload,
-  subscriptionDiscountRate
+  normalizeCartItemPayload
 } = require('./cart.service');
+const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
 const { createHttpError } = require('../utils/httpError');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -146,12 +146,15 @@ async function processCheckout({ user, payload, sessionId }) {
         }
 
         const unitPrice = Number(product.price);
-        const lineSubtotal = unitPrice * item.quantity;
-        const discount = item.isRecurring && user ? lineSubtotal * subscriptionDiscountRate : 0;
-        const lineTotal = lineSubtotal - discount;
+        const pricing = calculateSubscriptionLinePricing({
+          isLoggedIn: Boolean(user),
+          isRecurring: item.isRecurring,
+          quantity: item.quantity,
+          unitPrice
+        });
 
-        subtotal += lineSubtotal;
-        discountTotal += discount;
+        subtotal += pricing.subtotal;
+        discountTotal += pricing.discount;
 
         lineItems.push({
           productId: product.product_id,
@@ -161,8 +164,10 @@ async function processCheckout({ user, payload, sessionId }) {
           frequency: item.frequency,
           nextDeliveryDate: item.isRecurring ? calculateNextDeliveryDate(item.frequency) : null,
           unitPrice,
-          discount,
-          lineTotal
+          discount: pricing.discount,
+          discountRate: pricing.discountRate,
+          discountReason: pricing.discountReason,
+          lineTotal: pricing.lineTotal
         });
       }
 
@@ -287,4 +292,3 @@ async function processCheckout({ user, payload, sessionId }) {
 }
 
 module.exports = { processCheckout };
-
