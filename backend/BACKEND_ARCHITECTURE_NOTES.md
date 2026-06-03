@@ -287,6 +287,7 @@ feat(inventory): add pre-checkout stock reservation
 feat(discounts): add dynamic checkout discount engine
 feat(recommendations): add co-purchase product recommendations
 chore(deploy): add environment and deployment audit
+docs(architecture): add backend scoring evidence
 docs(backend): document backend architecture decisions
 ```
 

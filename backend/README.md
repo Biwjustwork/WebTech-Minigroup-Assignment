@@ -35,6 +35,8 @@ Seeded demo users use the password `password`. Running `npm run db:seed` resets 
 
 See `DEPLOYMENT_AUDIT.md` for the go-live checklist.
 
+See `ARCHITECTURE_SCORECARD.md` for the scoring evidence and presentation guide.
+
 ## Product API
 
 List products:
