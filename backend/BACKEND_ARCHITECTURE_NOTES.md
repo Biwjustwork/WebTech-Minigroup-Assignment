@@ -286,8 +286,43 @@ feat(database): add transaction helper and integrity audit
 feat(inventory): add pre-checkout stock reservation
 feat(discounts): add dynamic checkout discount engine
 feat(recommendations): add co-purchase product recommendations
+chore(deploy): add environment and deployment audit
 docs(backend): document backend architecture decisions
 ```
+
+## 22. Environment & Deployment Audit
+
+เพิ่มไฟล์:
+
+```text
+backend/DEPLOYMENT_AUDIT.md
+src/config/auditEnv.js
+scripts/audit-env.js
+scripts/smoke-test.js
+```
+
+เพิ่ม scripts:
+
+```text
+npm run audit:env
+npm run smoke:test
+npm run audit:deploy
+```
+
+สิ่งที่ audit:
+
+- `.env.example` มีอยู่
+- `.env` ถูก ignore
+- local SQLite files ถูก ignore
+- `PORT` valid
+- `DATABASE_URL` configured
+- `JWT_SECRET` configured
+- production JWT secret ไม่ใช่ placeholder และยาวพอ
+- `NODE_ENV` เป็น `development`, `test`, หรือ `production`
+- database foreign keys/table integrity ผ่าน `db:audit`
+- backend boot ได้จริงผ่าน health smoke test
+
+นี่ตอบ Session 10: Zero-Config & `.env` Audit เพราะ project มี checklist และ command ตรวจ readiness ก่อน demo/deploy
 
 ## 21. Bonus C: Personalized Recommendations
 

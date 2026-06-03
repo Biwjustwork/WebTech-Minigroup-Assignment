@@ -4,10 +4,13 @@
   "description": "Backend API for The Smart-Niche Marketplace assignment.",
   "main": "src/server.js",
   "scripts": {
+    "audit:deploy": "npm run audit:env && npm run db:audit && npm run smoke:test",
+    "audit:env": "node scripts/audit-env.js",
     "db:audit": "node scripts/audit-db.js",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
     "dev": "node --watch src/server.js",
+    "smoke:test": "node scripts/smoke-test.js",
     "start": "node src/server.js"
   },
   "keywords": [

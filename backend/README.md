@@ -23,6 +23,7 @@ npm install
 npm run db:migrate
 npm run db:seed
 npm run db:audit
+npm run audit:deploy
 npm run dev
 ```
 
@@ -31,6 +32,8 @@ The API starts on `http://localhost:3001` by default.
 The default SQLite database file is `backend/data/app.sqlite`.
 
 Seeded demo users use the password `password`. Running `npm run db:seed` resets demo products, users, carts, and orders.
+
+See `DEPLOYMENT_AUDIT.md` for the go-live checklist.
 
 ## Product API
 
