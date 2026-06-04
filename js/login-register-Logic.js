@@ -12,18 +12,24 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    document.querySelectorAll('.togglePassword, #togglePassword').forEach((button) => {
-        button.addEventListener('click', function () {
-            const targetId = this.getAttribute('data-target') || 'password';
-            const passwordInput = document.getElementById(targetId);
-            const icon = this.querySelector('.toggleIcon') || document.getElementById('toggleIcon');
-            if (!passwordInput || !icon) return;
+    // ใช้ Event Delegation โดยผูก Listener ไว้ที่ระดับ Parent (ในที่นี้คือ document)
+    document.addEventListener('click', function (event) {
+        // เช็คว่าสิ่งที่ถูกคลิก (หรือ parent ของมัน) คือปุ่ม toggle รหัสผ่านหรือไม่
+        const toggleButton = event.target.closest('.togglePassword, #togglePassword');
+        
+        // ถ้าไม่ได้คลิกที่ปุ่ม toggle ให้หยุดการทำงาน (ข้ามไปเลย)
+        if (!toggleButton) return;
 
-            const showPassword = passwordInput.type === 'password';
-            passwordInput.type = showPassword ? 'text' : 'password';
-            icon.classList.toggle('fa-eye', !showPassword);
-            icon.classList.toggle('fa-eye-slash', showPassword);
-        });
+        const targetId = toggleButton.getAttribute('data-target') || 'password';
+        const passwordInput = document.getElementById(targetId);
+        const icon = toggleButton.querySelector('.toggleIcon') || document.getElementById('toggleIcon');
+        
+        if (!passwordInput || !icon) return;
+
+        const showPassword = passwordInput.type === 'password';
+        passwordInput.type = showPassword ? 'text' : 'password';
+        icon.classList.toggle('fa-eye', !showPassword);
+        icon.classList.toggle('fa-eye-slash', showPassword);
     });
 
     function setLoading(button, spinner, isLoading) {
@@ -89,15 +95,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
+            
+            // เช็ค Email Pattern
             const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            
+            // เพิ่ม Regex สำหรับเช็ครหัสผ่าน: พิมพ์ใหญ่, พิมพ์เล็ก, ตัวเลข, สัญลักษณ์ และยาวอย่างน้อย 8 ตัวอักษร
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+            const passwordValid = passwordRegex.test(password);
 
             usernameInput.classList.toggle('is-invalid', username.length < 3);
             emailInput.classList.toggle('is-invalid', !emailValid);
-            passwordInput.classList.toggle('is-invalid', password.length < 6);
-            confirmPasswordInput.classList.toggle('is-invalid', password !== confirmPassword);
+            
+            // เปลี่ยนจากเช็คแค่ความยาว มาใช้ Regex แทน
+            passwordInput.classList.toggle('is-invalid', !passwordValid);
+            confirmPasswordInput.classList.toggle('is-invalid', password !== confirmPassword || !password);
 
-            if (username.length < 3 || !emailValid || password.length < 6 || password !== confirmPassword) {
-                showAlert('Please check the form and try again.');
+            // แจ้งเตือนเมื่อข้อมูลไม่ตรงตามเงื่อนไข
+            if (username.length < 3 || !emailValid || !passwordValid || password !== confirmPassword) {
+                // อัปเดตข้อความแจ้งเตือนเพื่อให้ User ทราบเงื่อนไขรหัสผ่าน
+                if (!passwordValid) {
+                    showAlert('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร ประกอบด้วยตัวพิมพ์ใหญ่ พิมพ์เล็ก ตัวเลข และสัญลักษณ์พิเศษ');
+                } else if (password !== confirmPassword) {
+                    showAlert('รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน');
+                } else {
+                    showAlert('กรุณาตรวจสอบข้อมูลฟอร์มให้ถูกต้องและลองอีกครั้ง');
+                }
                 return;
             }
 
