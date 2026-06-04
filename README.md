@@ -1,4 +1,4 @@
-# The Smart-Niche Marketplace (ECO clean) - Web Tech Minigroup Assignment
+# The Smart-Niche Marketplace (Eco Clean) - Web Tech Minigroup Assignment
 
 ยินดีต้อนรับสู่โปรเจกต์ระบบร้านค้าออนไลน์ขายผักและผลไม้ **The Smart-Niche Marketplace** ที่ถูกพัฒนาขึ้นจากเทมเพลตเว็บไซต์ **Fruitables** โดยได้ทำการเชื่อมต่อหน้าเว็บเพจฝั่งสถาปัตยกรรมส่วนหน้า (Frontend) เข้ากับระบบบริการจัดการข้อมูลหลังบ้าน (Backend API) เพื่อให้ระบบมีการทำงานแบบ Full-stack และมีความปลอดภัยตามมาตรฐานสากล
 
