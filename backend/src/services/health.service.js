@@ -1,5 +1,5 @@
 const { config } = require('../config/env');
-const { isSupabaseConfigured } = require('../config/supabase');
+const { isSupabaseAdminConfigured, isSupabaseConfigured } = require('../config/supabase');
 
 function getHealthStatus() {
   return {
@@ -8,6 +8,7 @@ function getHealthStatus() {
     environment: config.nodeEnv,
     supabase: {
       configured: isSupabaseConfigured(),
+      adminConfigured: isSupabaseAdminConfigured(),
       url: config.supabaseUrl || null
     },
     timestamp: new Date().toISOString()
@@ -15,4 +16,5 @@ function getHealthStatus() {
 }
 
 module.exports = { getHealthStatus };
+
 

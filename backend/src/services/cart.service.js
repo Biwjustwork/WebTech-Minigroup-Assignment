@@ -1,13 +1,8 @@
 const { randomUUID } = require('crypto');
-const {
-  all,
-  closeDatabase,
-  get,
-  openDatabase,
-  run
-} = require('../database/connection');
+const { getSupabaseAdminClient } = require('../config/supabase');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
 const { createHttpError } = require('../utils/httpError');
+const { throwIfSupabaseError } = require('../utils/supabaseError');
 const {
   assertAllowedOrderType,
   assertNoClientCalculatedFields
@@ -83,59 +78,73 @@ function getCartSessionId(sessionId) {
   return sessionId || `guest_${randomUUID()}`;
 }
 
-async function findActiveCart(db, { user, sessionId }) {
-  if (user) {
-    return get(db, 'SELECT * FROM carts WHERE user_id = ? AND status = ?', [user.user_id, 'active']);
-  }
+async function findActiveCart({ user, sessionId }) {
+  const supabase = getSupabaseAdminClient();
+  let request = supabase
+    .from('carts')
+    .select('*')
+    .eq('status', 'active');
 
-  if (!sessionId) {
+  if (user) {
+    request = request.eq('user_id', user.user_id);
+  } else if (sessionId) {
+    request = request.eq('session_id', sessionId);
+  } else {
     return null;
   }
 
-  return get(db, 'SELECT * FROM carts WHERE session_id = ? AND status = ?', [sessionId, 'active']);
+  const { data, error } = await request.maybeSingle();
+  throwIfSupabaseError(error);
+  return data;
 }
 
-async function ensureCart(db, { user, sessionId, createIfMissing = true }) {
+async function ensureCart({ user, sessionId, createIfMissing = true }) {
   const resolvedSessionId = user ? null : getCartSessionId(sessionId);
-  let cart = await findActiveCart(db, { user, sessionId: resolvedSessionId });
+  let cart = await findActiveCart({ user, sessionId: resolvedSessionId });
 
   if (!cart && createIfMissing) {
-    cart = {
-      cart_id: createCartId(),
-      user_id: user?.user_id || null,
-      session_id: resolvedSessionId,
-      status: 'active'
-    };
+    const now = new Date().toISOString();
+    const supabase = getSupabaseAdminClient();
+    const { data, error } = await supabase
+      .from('carts')
+      .insert({
+        cart_id: createCartId(),
+        user_id: user?.user_id || null,
+        session_id: resolvedSessionId,
+        status: 'active',
+        created_at: now,
+        updated_at: now
+      })
+      .select('*')
+      .single();
 
-    await run(
-      db,
-      `
-        INSERT INTO carts (cart_id, user_id, session_id, status)
-        VALUES (?, ?, ?, 'active')
-      `,
-      [cart.cart_id, cart.user_id, cart.session_id]
-    );
+    throwIfSupabaseError(error);
+    cart = data;
   }
 
   return cart;
 }
 
-async function assertProductExists(db, productId) {
-  const product = await get(
-    db,
-    'SELECT product_id FROM products WHERE product_id = ?',
-    [productId]
-  );
+async function assertProductExists(productId) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('product_id')
+    .eq('product_id', productId)
+    .maybeSingle();
 
-  if (!product) {
+  throwIfSupabaseError(error);
+
+  if (!data) {
     throw createHttpError(404, 'PRODUCT_NOT_FOUND', 'Product was not found.');
   }
 }
 
 function mapCartRow(row, isLoggedIn) {
+  const product = row.products;
   const quantity = Number(row.quantity);
-  const unitPrice = Number(row.price);
-  const isRecurring = Number(row.is_recurring) === 1;
+  const unitPrice = Number(product.price);
+  const isRecurring = Boolean(row.is_recurring);
   const pricing = calculateSubscriptionLinePricing({
     isLoggedIn,
     isRecurring,
@@ -148,12 +157,12 @@ function mapCartRow(row, isLoggedIn) {
     product: {
       id: row.product_id,
       product_id: row.product_id,
-      name: row.name,
-      category: row.category,
-      image: row.image,
-      description: row.description,
+      name: product.name,
+      category: product.category,
+      image: product.image,
+      description: product.description,
       price: unitPrice,
-      stock_quantity: Number(row.stock_quantity)
+      stock_quantity: Number(product.stock_quantity)
     },
     quantity,
     orderType: isRecurring ? 'recurring' : 'one-time',
@@ -167,32 +176,33 @@ function mapCartRow(row, isLoggedIn) {
   };
 }
 
-async function buildCartResponse(db, cart, user) {
+async function buildCartResponse(cart, user) {
+  const supabase = getSupabaseAdminClient();
   const rows = cart
-    ? await all(
-      db,
-      `
-        SELECT
-          ci.product_id,
-          ci.quantity,
-          ci.is_recurring,
-          ci.frequency,
-          p.name,
-          p.category,
-          p.image,
-          p.description,
-          p.price,
-          p.stock_quantity
-        FROM cart_items ci
-        JOIN products p ON p.product_id = ci.product_id
-        WHERE ci.cart_id = ?
-        ORDER BY ci.created_at
-      `,
-      [cart.cart_id]
-    )
-    : [];
+    ? await supabase
+      .from('cart_items')
+      .select(`
+        product_id,
+        quantity,
+        is_recurring,
+        frequency,
+        created_at,
+        products (
+          name,
+          category,
+          image,
+          description,
+          price,
+          stock_quantity
+        )
+      `)
+      .eq('cart_id', cart.cart_id)
+      .order('created_at', { ascending: true })
+    : { data: [], error: null };
 
-  const items = rows.map((row) => mapCartRow(row, Boolean(user)));
+  throwIfSupabaseError(rows.error);
+
+  const items = (rows.data || []).map((row) => mapCartRow(row, Boolean(user)));
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const discountTotal = items.reduce((sum, item) => sum + item.discount, 0);
 
@@ -212,115 +222,112 @@ async function buildCartResponse(db, cart, user) {
 }
 
 async function getCart({ user, sessionId, createIfMissing = true }) {
-  const db = await openDatabase();
-
-  try {
-    const cart = await ensureCart(db, { user, sessionId, createIfMissing });
-    return buildCartResponse(db, cart, user);
-  } finally {
-    await closeDatabase(db);
-  }
+  const cart = await ensureCart({ user, sessionId, createIfMissing });
+  return buildCartResponse(cart, user);
 }
 
 async function addCartItem({ user, sessionId, payload }) {
   const item = normalizeCartItemPayload(payload);
-  const db = await openDatabase();
+  await assertProductExists(item.productId);
 
-  try {
-    await assertProductExists(db, item.productId);
-    const cart = await ensureCart(db, { user, sessionId });
+  const cart = await ensureCart({ user, sessionId });
+  const supabase = getSupabaseAdminClient();
+  const { data: existingItem, error: existingError } = await supabase
+    .from('cart_items')
+    .select('cart_item_id,quantity')
+    .eq('cart_id', cart.cart_id)
+    .eq('product_id', item.productId)
+    .maybeSingle();
 
-    await run(
-      db,
-      `
-        INSERT INTO cart_items (
-          cart_item_id,
-          cart_id,
-          product_id,
-          quantity,
-          is_recurring,
-          frequency,
-          updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-        ON CONFLICT(cart_id, product_id) DO UPDATE SET
-          quantity = cart_items.quantity + excluded.quantity,
-          is_recurring = excluded.is_recurring,
-          frequency = excluded.frequency,
-          updated_at = datetime('now')
-      `,
-      [
-        createCartItemId(),
-        cart.cart_id,
-        item.productId,
-        item.quantity,
-        item.isRecurring ? 1 : 0,
-        item.frequency
-      ]
-    );
+  throwIfSupabaseError(existingError);
 
-    await run(db, 'UPDATE carts SET updated_at = datetime(\'now\') WHERE cart_id = ?', [cart.cart_id]);
-    return buildCartResponse(db, cart, user);
-  } finally {
-    await closeDatabase(db);
-  }
+  const now = new Date().toISOString();
+  const upsertPayload = {
+    cart_item_id: existingItem?.cart_item_id || createCartItemId(),
+    cart_id: cart.cart_id,
+    product_id: item.productId,
+    quantity: Number(existingItem?.quantity || 0) + item.quantity,
+    is_recurring: item.isRecurring,
+    frequency: item.frequency,
+    updated_at: now,
+    created_at: existingItem ? undefined : now
+  };
+
+  const { error: upsertError } = await supabase
+    .from('cart_items')
+    .upsert(upsertPayload, { onConflict: 'cart_id,product_id' });
+
+  throwIfSupabaseError(upsertError);
+
+  const { error: cartError } = await supabase
+    .from('carts')
+    .update({ updated_at: now })
+    .eq('cart_id', cart.cart_id);
+
+  throwIfSupabaseError(cartError);
+  return buildCartResponse(cart, user);
 }
 
 async function updateCartItem({ user, sessionId, productId, payload }) {
   const item = normalizeCartItemPayload({ ...payload, productId }, productId);
-  const db = await openDatabase();
+  const cart = await ensureCart({ user, sessionId, createIfMissing: false });
 
-  try {
-    const cart = await ensureCart(db, { user, sessionId, createIfMissing: false });
-    if (!cart) {
-      throw createHttpError(404, 'CART_NOT_FOUND', 'Cart was not found.');
-    }
-
-    const result = await run(
-      db,
-      `
-        UPDATE cart_items
-        SET
-          quantity = ?,
-          is_recurring = ?,
-          frequency = ?,
-          updated_at = datetime('now')
-        WHERE cart_id = ? AND product_id = ?
-      `,
-      [item.quantity, item.isRecurring ? 1 : 0, item.frequency, cart.cart_id, item.productId]
-    );
-
-    if (result.changes === 0) {
-      throw createHttpError(404, 'CART_ITEM_NOT_FOUND', 'Cart item was not found.');
-    }
-
-    await run(db, 'UPDATE carts SET updated_at = datetime(\'now\') WHERE cart_id = ?', [cart.cart_id]);
-    return buildCartResponse(db, cart, user);
-  } finally {
-    await closeDatabase(db);
+  if (!cart) {
+    throw createHttpError(404, 'CART_NOT_FOUND', 'Cart was not found.');
   }
+
+  const supabase = getSupabaseAdminClient();
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('cart_items')
+    .update({
+      quantity: item.quantity,
+      is_recurring: item.isRecurring,
+      frequency: item.frequency,
+      updated_at: now
+    })
+    .eq('cart_id', cart.cart_id)
+    .eq('product_id', item.productId)
+    .select('cart_item_id');
+
+  throwIfSupabaseError(error);
+
+  if (!data || data.length === 0) {
+    throw createHttpError(404, 'CART_ITEM_NOT_FOUND', 'Cart item was not found.');
+  }
+
+  const { error: cartError } = await supabase
+    .from('carts')
+    .update({ updated_at: now })
+    .eq('cart_id', cart.cart_id);
+
+  throwIfSupabaseError(cartError);
+  return buildCartResponse(cart, user);
 }
 
 async function removeCartItem({ user, sessionId, productId }) {
-  const db = await openDatabase();
+  const cart = await ensureCart({ user, sessionId, createIfMissing: false });
 
-  try {
-    const cart = await ensureCart(db, { user, sessionId, createIfMissing: false });
-    if (!cart) {
-      throw createHttpError(404, 'CART_NOT_FOUND', 'Cart was not found.');
-    }
-
-    await run(
-      db,
-      'DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?',
-      [cart.cart_id, productId]
-    );
-    await run(db, 'UPDATE carts SET updated_at = datetime(\'now\') WHERE cart_id = ?', [cart.cart_id]);
-
-    return buildCartResponse(db, cart, user);
-  } finally {
-    await closeDatabase(db);
+  if (!cart) {
+    throw createHttpError(404, 'CART_NOT_FOUND', 'Cart was not found.');
   }
+
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase
+    .from('cart_items')
+    .delete()
+    .eq('cart_id', cart.cart_id)
+    .eq('product_id', productId);
+
+  throwIfSupabaseError(error);
+
+  const { error: cartError } = await supabase
+    .from('carts')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('cart_id', cart.cart_id);
+
+  throwIfSupabaseError(cartError);
+  return buildCartResponse(cart, user);
 }
 
 module.exports = {
@@ -332,3 +339,4 @@ module.exports = {
   removeCartItem,
   updateCartItem
 };
+

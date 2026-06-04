@@ -1,20 +1,14 @@
 const { randomUUID } = require('crypto');
-const {
-  all,
-  closeDatabase,
-  openDatabase,
-  run,
-  withTransaction
-} = require('../database/connection');
+const { getSupabaseAdminClient } = require('../config/supabase');
 const {
   ensureCart,
   normalizeCartItemPayload
 } = require('./cart.service');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
 const { calculateDynamicDiscount } = require('./discount.service');
-const { verifyAndReserveStock } = require('./inventory.service');
 const { createHttpError } = require('../utils/httpError');
 const { assertNoClientCalculatedFields } = require('../utils/gatekeeper');
+const { mapSupabaseRpcError, throwIfSupabaseError } = require('../utils/supabaseError');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -52,29 +46,27 @@ function validateCheckoutPayload(payload, user) {
   return { address, guestEmail, guestName };
 }
 
-async function loadCartItems(db, { user, sessionId }) {
-  const cart = await ensureCart(db, { user, sessionId, createIfMissing: false });
+async function loadCartItems({ user, sessionId }) {
+  const cart = await ensureCart({ user, sessionId, createIfMissing: false });
   if (!cart) {
     return { cart: null, items: [] };
   }
 
-  const rows = await all(
-    db,
-    `
-      SELECT product_id, quantity, is_recurring, frequency
-      FROM cart_items
-      WHERE cart_id = ?
-      ORDER BY created_at
-    `,
-    [cart.cart_id]
-  );
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from('cart_items')
+    .select('product_id,quantity,is_recurring,frequency,created_at')
+    .eq('cart_id', cart.cart_id)
+    .order('created_at', { ascending: true });
+
+  throwIfSupabaseError(error);
 
   return {
     cart,
-    items: rows.map((row) => ({
+    items: (data || []).map((row) => ({
       productId: row.product_id,
       quantity: Number(row.quantity),
-      isRecurring: Number(row.is_recurring) === 1,
+      isRecurring: Boolean(row.is_recurring),
       frequency: row.frequency
     }))
   };
@@ -102,172 +94,138 @@ function calculateNextDeliveryDate(frequency) {
   return date.toISOString();
 }
 
+async function loadCheckoutProducts(items) {
+  const productIds = [...new Set(items.map((item) => item.productId))];
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('product_id,name,category,price,stock_quantity')
+    .in('product_id', productIds);
+
+  throwIfSupabaseError(error);
+
+  const productsById = new Map((data || []).map((product) => [product.product_id, product]));
+
+  for (const item of items) {
+    const product = productsById.get(item.productId);
+    if (!product) {
+      throw createHttpError(404, 'PRODUCT_NOT_FOUND', `Product ${item.productId} was not found.`);
+    }
+
+    if (Number(product.stock_quantity) < item.quantity) {
+      throw createHttpError(409, 'OUT_OF_STOCK', `${product.name} is out of stock.`);
+    }
+  }
+
+  return productsById;
+}
+
 async function processCheckout({ user, payload, sessionId }) {
   assertNoClientCalculatedFields(payload);
 
   const checkoutDetails = validateCheckoutPayload(payload, user);
-  const db = await openDatabase();
+  const payloadItems = getCheckoutItems(payload.items);
+  const cartResult = payloadItems
+    ? { cart: null, items: payloadItems }
+    : await loadCartItems({ user, sessionId: payload.cartSessionId || sessionId });
+  const items = cartResult.items;
 
-  try {
-    return await withTransaction(db, async () => {
-      const payloadItems = getCheckoutItems(payload.items);
-      const cartResult = payloadItems ? { cart: null, items: payloadItems } : await loadCartItems(db, { user, sessionId: payload.cartSessionId || sessionId });
-      const items = cartResult.items;
-
-      if (items.length === 0) {
-        throw createHttpError(400, 'EMPTY_CHECKOUT', 'checkout requires at least one item.');
-      }
-
-      const orderId = createOrderId();
-      const lineItems = [];
-      let subtotal = 0;
-      let discountTotal = 0;
-
-      for (const item of items) {
-        const product = await verifyAndReserveStock(db, {
-          productId: item.productId,
-          quantity: item.quantity
-        });
-
-        const unitPrice = product.price;
-        const pricing = calculateSubscriptionLinePricing({
-          isLoggedIn: Boolean(user),
-          isRecurring: item.isRecurring,
-          quantity: item.quantity,
-          unitPrice
-        });
-
-        subtotal += pricing.subtotal;
-        discountTotal += pricing.discount;
-
-        lineItems.push({
-          productId: product.product_id,
-          productName: product.name,
-          category: product.category,
-          quantity: item.quantity,
-          isRecurring: item.isRecurring,
-          frequency: item.frequency,
-          nextDeliveryDate: item.isRecurring ? calculateNextDeliveryDate(item.frequency) : null,
-          unitPrice,
-          discount: pricing.discount,
-          discountRate: pricing.discountRate,
-          discountReason: pricing.discountReason,
-          lineTotal: pricing.lineTotal
-        });
-      }
-
-      const dynamicPricing = calculateDynamicDiscount(lineItems);
-      const total = dynamicPricing.total;
-
-      await run(
-        db,
-        `
-          INSERT INTO orders (
-            order_id,
-            user_id,
-            is_guest_checkout,
-            guest_name,
-            guest_email,
-            address,
-            subtotal_amount,
-            subscription_discount_amount,
-            dynamic_discount_amount,
-            dynamic_discount_reason,
-            total_amount,
-            order_status,
-            updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'placed', datetime('now'))
-        `,
-        [
-          orderId,
-          user?.user_id || null,
-          user ? 0 : 1,
-          user ? null : checkoutDetails.guestName,
-          user ? null : checkoutDetails.guestEmail,
-          checkoutDetails.address,
-          subtotal,
-          discountTotal,
-          dynamicPricing.dynamicDiscount,
-          dynamicPricing.dynamicDiscountReason,
-          total
-        ]
-      );
-
-      for (const item of lineItems) {
-        await run(
-          db,
-          `
-            INSERT INTO order_items (
-              order_item_id,
-              order_id,
-              product_id,
-              quantity,
-              is_recurring,
-              frequency,
-              next_delivery_date,
-              unit_price,
-              discount_applied,
-              line_total
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `,
-          [
-            createOrderItemId(),
-            orderId,
-            item.productId,
-            item.quantity,
-            item.isRecurring ? 1 : 0,
-            item.frequency,
-            item.nextDeliveryDate,
-            item.unitPrice,
-            item.discount,
-            item.lineTotal
-          ]
-        );
-      }
-
-      await run(
-        db,
-        `
-          INSERT INTO payments (
-            payment_id,
-            order_id,
-            payment_method,
-            payment_status
-          )
-          VALUES (?, ?, 'bypassed', 'bypassed')
-        `,
-        [createPaymentId(), orderId]
-      );
-
-      if (cartResult.cart) {
-        await run(db, 'UPDATE carts SET status = ?, updated_at = datetime(\'now\') WHERE cart_id = ?', ['checked_out', cartResult.cart.cart_id]);
-      }
-
-      return {
-        data: {
-          orderId,
-          status: 'placed',
-          paymentStatus: 'bypassed',
-          userId: user?.user_id || null,
-          isGuestCheckout: !user,
-          items: lineItems,
-          summary: {
-            subtotal,
-            subscriptionDiscountTotal: discountTotal,
-            dynamicDiscountTotal: dynamicPricing.dynamicDiscount,
-            dynamicDiscountRate: dynamicPricing.dynamicDiscountRate,
-            dynamicDiscountReason: dynamicPricing.dynamicDiscountReason,
-            recalculatedBy: 'backend',
-            total
-          }
-        }
-      };
-    });
-  } finally {
-    await closeDatabase(db);
+  if (items.length === 0) {
+    throw createHttpError(400, 'EMPTY_CHECKOUT', 'checkout requires at least one item.');
   }
+
+  const productsById = await loadCheckoutProducts(items);
+  const orderId = createOrderId();
+  const lineItems = [];
+  let subtotal = 0;
+  let discountTotal = 0;
+
+  for (const item of items) {
+    const product = productsById.get(item.productId);
+    const unitPrice = Number(product.price);
+    const pricing = calculateSubscriptionLinePricing({
+      isLoggedIn: Boolean(user),
+      isRecurring: item.isRecurring,
+      quantity: item.quantity,
+      unitPrice
+    });
+
+    subtotal += pricing.subtotal;
+    discountTotal += pricing.discount;
+
+    lineItems.push({
+      orderItemId: createOrderItemId(),
+      productId: product.product_id,
+      productName: product.name,
+      category: product.category,
+      quantity: item.quantity,
+      isRecurring: item.isRecurring,
+      frequency: item.frequency,
+      nextDeliveryDate: item.isRecurring ? calculateNextDeliveryDate(item.frequency) : null,
+      unitPrice,
+      discount: pricing.discount,
+      discountRate: pricing.discountRate,
+      discountReason: pricing.discountReason,
+      lineTotal: pricing.lineTotal
+    });
+  }
+
+  const dynamicPricing = calculateDynamicDiscount(lineItems);
+  const total = dynamicPricing.total;
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.rpc('commit_checkout_order', {
+    p_order: {
+      order_id: orderId,
+      user_id: user?.user_id || null,
+      is_guest_checkout: !user,
+      guest_name: user ? null : checkoutDetails.guestName,
+      guest_email: user ? null : checkoutDetails.guestEmail,
+      address: checkoutDetails.address,
+      subtotal_amount: subtotal,
+      subscription_discount_amount: discountTotal,
+      dynamic_discount_amount: dynamicPricing.dynamicDiscount,
+      dynamic_discount_reason: dynamicPricing.dynamicDiscountReason,
+      total_amount: total
+    },
+    p_items: lineItems.map((item) => ({
+      order_item_id: item.orderItemId,
+      product_id: item.productId,
+      quantity: item.quantity,
+      is_recurring: item.isRecurring,
+      frequency: item.frequency,
+      next_delivery_date: item.nextDeliveryDate,
+      unit_price: item.unitPrice,
+      discount_applied: item.discount,
+      line_total: item.lineTotal
+    })),
+    p_payment_id: createPaymentId(),
+    p_cart_id: cartResult.cart?.cart_id || null
+  });
+
+  if (error) {
+    throw mapSupabaseRpcError(error);
+  }
+
+  return {
+    data: {
+      orderId,
+      status: 'placed',
+      paymentStatus: 'bypassed',
+      userId: user?.user_id || null,
+      isGuestCheckout: !user,
+      items: lineItems,
+      summary: {
+        subtotal,
+        subscriptionDiscountTotal: discountTotal,
+        dynamicDiscountTotal: dynamicPricing.dynamicDiscount,
+        dynamicDiscountRate: dynamicPricing.dynamicDiscountRate,
+        dynamicDiscountReason: dynamicPricing.dynamicDiscountReason,
+        recalculatedBy: 'backend',
+        total
+      }
+    }
+  };
 }
 
 module.exports = { processCheckout };
+
