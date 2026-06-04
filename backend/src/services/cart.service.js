@@ -1,6 +1,8 @@
 const { randomUUID } = require('crypto');
 const { getSupabaseAdminClient } = require('../config/supabase');
 const { calculateSubscriptionLinePricing } = require('./subscriptionDiscount.service');
+// 🌟 เพิ่มบรรทัดนี้ลงไปเพื่อดึง Engine คำนวณส่วนลดมาใช้
+const { calculateDynamicDiscount } = require('./discount.service');
 const { createHttpError } = require('../utils/httpError');
 const { throwIfSupabaseError } = require('../utils/supabaseError');
 const {
@@ -204,7 +206,12 @@ async function buildCartResponse(cart, user) {
 
   const items = (rows.data || []).map((row) => mapCartRow(row, Boolean(user)));
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  
+  // 1. นี่คือส่วนลดจากการซื้อซ้ำ (Recurring)
   const discountTotal = items.reduce((sum, item) => sum + item.discount, 0);
+
+  // 🌟 2. โยนสินค้าในตะกร้าเข้าเครื่องยนต์คำนวณ Dynamic Discount (10%, 15%)
+  const dynamicPricing = calculateDynamicDiscount(items);
 
   return {
     data: {
@@ -214,8 +221,10 @@ async function buildCartResponse(cart, user) {
       items,
       summary: {
         subtotal,
-        discountTotal,
-        total: subtotal - discountTotal
+        discountTotal, // ส่วนลด Subscription
+        dynamicDiscount: dynamicPricing.dynamicDiscount, // 🌟 ยอดส่วนลด 10% หรือ 15%
+        dynamicDiscountReason: dynamicPricing.dynamicDiscountReason, // 🌟 เหตุผลที่ลด (เอาไว้เก็บ Audit)
+        total: dynamicPricing.total // 🌟 ยอดรวมสุทธิที่หักทุกอย่างเรียบร้อยแล้วจาก Backend
       }
     }
   };
