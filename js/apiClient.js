@@ -22,16 +22,10 @@
             localStorage.setItem('authToken', result.token);
         }
 
-        if (result?.user) {
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', JSON.stringify(result.user));
-        }
     }
 
     function clearAuthSession() {
         localStorage.removeItem('authToken');
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('currentUser');
     }
 
     async function request(path, options = {}) {
@@ -125,6 +119,42 @@
         },
         register: (payload) => request('/auth/register', { method: 'POST', body: payload }),
         request,
-        normalizeCartForLocalStorage
+        normalizeCartForLocalStorage,
+        
+        // 🌟 เพิ่มฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก JWT (รองรับภาษาไทย/UTF-8)
+        getCurrentUser: () => {
+            const token = localStorage.getItem('authToken');
+            if (!token) return null;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                
+                const decoded = JSON.parse(jsonPayload);
+                // คืนค่า Object ผู้ใช้ (ปกติหลังบ้านจะแนบไว้ที่ decoded.user หรือที่ root payload)
+                return decoded.user || decoded;
+            } catch (e) {
+                return null;
+            }
+        },
+
+        // 🌟 เพิ่มฟังก์ชันเช็คสถานะการเข้าสู่ระบบ (เช็คว่ามี Token และยังไม่หมดอายุ)
+        isAuthenticated: () => {
+            const token = localStorage.getItem('authToken');
+            if (!token) return false;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const decoded = JSON.parse(atob(base64));
+                
+                // เช็คเวลาหมดอายุของ JWT (exp) เทียบกับเวลาปัจจุบันบนเครื่อง
+                const currentTime = Date.now() / 1000;
+                return decoded.exp > currentTime;
+            } catch (e) {
+                return false;
+            }
+        }
     };
 })(window);
