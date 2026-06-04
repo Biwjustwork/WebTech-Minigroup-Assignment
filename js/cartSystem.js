@@ -10,6 +10,24 @@ function persistCart(cartResponse) {
 async function addToCart(productId) {
     try {
         if (window.EcoApi) {
+            // 1. ดึงข้อมูลสินค้าล่าสุดจากหลังบ้านเพื่อเช็ก stock_quantity
+            const productRes = await window.EcoApi.request(`/products/${encodeURIComponent(productId)}`);
+            const product = productRes?.data;
+            if (!product) {
+                throw new Error('Product not found.');
+            }
+
+            // 2. ดึงข้อมูลจำนวนสินค้าชิ้นนี้ที่มีอยู่แล้วในตะกร้าปัจจุบัน
+            const cartResponse = await window.EcoApi.getCart();
+            const currentItem = cartResponse?.data?.items?.find(item => item.productId === productId);
+            const currentQuantity = currentItem ? currentItem.quantity : 0;
+
+            // 3. ตรวจสอบว่าจำนวนใหม่จะเกินสต็อกสินค้าหรือไม่
+            if (currentQuantity + 1 > product.stock_quantity) {
+                alert(`Cannot add more items. Only ${product.stock_quantity} left in stock (you already have ${currentQuantity} in your cart).`);
+                return false;
+            }
+
             const cart = await window.EcoApi.addCartItem({
                 productId,
                 quantity: 1,
@@ -17,7 +35,7 @@ async function addToCart(productId) {
             });
             persistCart(cart);
             updateCartUI(cart);
-            return;
+            return true;
         }
 
         shoppingCart[productId] = {
@@ -25,9 +43,11 @@ async function addToCart(productId) {
         };
         persistCart();
         updateCartUI();
+        return true;
     } catch (error) {
         console.error('Add to cart failed:', error);
         alert(error.message || 'Unable to add item to cart');
+        return false;
     }
 }
 
@@ -106,8 +126,10 @@ if (productListContainer) {
         const productId = productCard?.getAttribute('data-id');
         if (!productId) return;
 
-        await addToCart(productId);
-        flyToCartEffect(productCard);
+        const success = await addToCart(productId);
+        if (success) {
+            flyToCartEffect(productCard);
+        }
     });
 }
 
