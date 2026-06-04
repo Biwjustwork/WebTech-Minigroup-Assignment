@@ -17,18 +17,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (summaryContainer) summaryContainer.innerHTML = '';
     }
 
-    function renderSummary(summary) {
+    function renderSummary(summary, items = []) {
         if (!summaryContainer) return;
+        
+        const hasRecurring = items.some(item => item.orderType === 'recurring');
+        
+        // 🌟 เปลี่ยนมารับค่ายอดส่วนลดจาก Backend โดยตรง! (ถ้ายอดไม่ถึง 200 หลังบ้านจะส่งมาเป็น 0)
+        const volumeDiscountAmount = summary.dynamicDiscount || 0;
+        const hasVolumeDiscount = volumeDiscountAmount > 0;
+
         summaryContainer.innerHTML = `
             <div class="p-4">
                 <div class="d-flex justify-content-between mb-4">
                     <h5 class="mb-0 me-4">Subtotal:</h5>
                     <p class="mb-0">$${summary.subtotal.toFixed(2)}</p>
                 </div>
+                
+                ${hasRecurring && summary.discountTotal > 0 ? `
                 <div class="d-flex justify-content-between mb-4">
                     <h5 class="mb-0 me-4 text-success">Recurring Discount:</h5>
                     <p class="mb-0 text-success">-$${summary.discountTotal.toFixed(2)}</p>
                 </div>
+                ` : ''}
+
+                ${hasVolumeDiscount ? `
+                <div class="d-flex justify-content-between ">
+                    <h5 class="mb-0 me-4 text-success">Dynamic Discount (${summary.dynamicDiscountReason === 'cart_total_over_200_10_percent' ? '10%' : '15%'}):</h5>
+                    <p class="mb-0 text-success">-$${volumeDiscountAmount.toFixed(2)}</p>
+                </div>
+                <div class="d-flex justify-content-between mb-4"><p><small>(Orders with a value of $200.)</small></p></div>
+                ` : ''}
+
                 <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
                     <h5 class="mb-0 ps-4 me-4">Total</h5>
                     <h5 class="mb-0 pe-4 text-success fw-bold">$${summary.total.toFixed(2)}</h5>
@@ -44,6 +63,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderEmpty();
             return;
         }
+
+        // ดึงสถานะ Auth เพื่อตรวจสอบว่าเป็น Guest หรือไม่
+        const isLoggedIn = window.EcoApi.isAuthenticated ? window.EcoApi.isAuthenticated() : false;
 
         tbody.innerHTML = items.map((item) => {
             const product = item.product;
@@ -61,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td>
                         <select class="form-select mt-3 order-type-select" style="width: 140px;">
                             <option value="one-time" ${item.orderType === 'one-time' ? 'selected' : ''}>One-time</option>
-                            <option value="recurring" ${item.orderType === 'recurring' ? 'selected' : ''}>Recurring</option>
+                            <option value="recurring" ${item.orderType === 'recurring' ? 'selected' : ''} ${!isLoggedIn ? 'disabled title="Please login to use recurring orders"' : ''}>Recurring</option>
                         </select>
                         <select class="form-select mt-2 frequency-select" style="width: 140px; display: ${displayFrequency};">
                             <option value="weekly" ${frequency === 'weekly' ? 'selected' : ''}>Every 1 Week</option>
@@ -92,7 +114,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }).join('');
 
-        renderSummary(cart.data.summary);
+        // ส่งตัวแปร items เข้าไปใน renderSummary ด้วย เพื่อให้เช็คเงื่อนไขซ่อน/แสดงส่วนลดได้
+        renderSummary(cart.data.summary, items);
     }
 
     async function loadCart() {
@@ -158,6 +181,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             if (event.target.classList.contains('order-type-select')) {
                 const orderType = event.target.value;
+                const isLoggedIn = window.EcoApi.isAuthenticated ? window.EcoApi.isAuthenticated() : false;
+
+                // 🌟 หากเป็น Guest แต่พยายามเลือก Recurring ให้ปฏิเสธการทำงานและคืนค่ากลับ
+                if (orderType === 'recurring' && !isLoggedIn) {
+                    alert('Please login to use recurring orders.');
+                    event.target.value = 'one-time'; 
+                    return;
+                }
+
                 await updateItem(productId, {
                     orderType,
                     frequency: orderType === 'recurring' ? 'monthly' : undefined
