@@ -1,17 +1,21 @@
 const cartTotalThreshold = 200;
 const cartTotalDiscountRate = 0.1;
-const freshCategoryQuantityThreshold = 3;
-const freshCategoryDiscountRate = 0.15;
+const zeroWasteCategoryQuantityThreshold = 3;
+const zeroWasteCategoryDiscountRate = 0.15;
 
 function calculateDynamicDiscount(lineItems) {
+  const grossTotal = lineItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
   const baseTotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
-  const freshQuantity = lineItems
-    .filter((item) => item.category === 'Fresh')
+  
+  // 🌟 แก้บั๊ก: เปลี่ยนจาก item.category เป็น item.product.category
+  const zeroWasteQuantity = lineItems
+    .filter((item) => item.product && item.product.category === 'Zero Waste')
     .reduce((sum, item) => sum + item.quantity, 0);
 
   const candidates = [];
 
-  if (baseTotal > cartTotalThreshold) {
+  // 1. ลด 10% เมื่อยอดรวม >= 200
+  if (grossTotal >= cartTotalThreshold) {
     candidates.push({
       discount: baseTotal * cartTotalDiscountRate,
       discountRate: cartTotalDiscountRate,
@@ -19,14 +23,27 @@ function calculateDynamicDiscount(lineItems) {
     });
   }
 
-  if (freshQuantity > freshCategoryQuantityThreshold) {
+  // 2. ลด 15% เมื่อยอด >= 200 และมีสินค้า Zero Waste
+  // 🌟 แก้บั๊ก: เปลี่ยนจาก item.category เป็น item.product.category
+  const hasZeroWaste = lineItems.some((item) => item.product && item.product.category === 'Zero Waste');
+  if (grossTotal >= cartTotalThreshold && hasZeroWaste) {
     candidates.push({
-      discount: baseTotal * freshCategoryDiscountRate,
-      discountRate: freshCategoryDiscountRate,
-      discountReason: 'fresh_category_more_than_3_items_15_percent'
+      discount: baseTotal * 0.15,
+      discountRate: 0.15,
+      discountReason: 'cart_over_200_and_zero_waste_15_percent'
     });
   }
 
+  // 3. ลด 15% เมื่อหมวด Zero Waste มากกว่า 3 ชิ้น (ตั้งแต่ 4 ชิ้นขึ้นไป)
+  if (zeroWasteQuantity > zeroWasteCategoryQuantityThreshold) {
+    candidates.push({
+      discount: baseTotal * zeroWasteCategoryDiscountRate,
+      discountRate: zeroWasteCategoryDiscountRate,
+      discountReason: 'zero_waste_more_than_3_items_15_percent' 
+    });
+  }
+
+  // หาโปรโมชั่นที่ให้ส่วนลดเยอะที่สุดแก่ลูกค้า
   const bestDiscount = candidates.sort((a, b) => b.discount - a.discount)[0] || {
     discount: 0,
     discountRate: 0,
@@ -41,8 +58,8 @@ function calculateDynamicDiscount(lineItems) {
     total: baseTotal - bestDiscount.discount,
     rulesEvaluated: {
       cartTotalThreshold,
-      freshCategoryQuantityThreshold,
-      freshQuantity
+      zeroWasteCategoryQuantityThreshold,
+      zeroWasteQuantity
     }
   };
 }
@@ -50,5 +67,3 @@ function calculateDynamicDiscount(lineItems) {
 module.exports = {
   calculateDynamicDiscount
 };
-
-
