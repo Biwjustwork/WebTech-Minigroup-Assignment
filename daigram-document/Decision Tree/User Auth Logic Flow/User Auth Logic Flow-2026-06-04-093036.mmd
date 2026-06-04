@@ -1,0 +1,32 @@
+---
+config:
+  theme: redux
+---
+flowchart TD
+    Start([เริ่มต้นการใช้งาน]) --> SelectAction{ผู้ใช้เลือกทำอะไร?}
+    SelectAction -- เลือก สมัครสมาชิก (Register) --> InputReg[กรอก Username, Email, Password, Confirm Password]
+    InputReg --> FE_Reg_Check{ระบบ Frontend ตรวจสอบข้อมูล}
+
+    FE_Reg_Check -- Username < 3 ตัวอักษร --> AlertReg1[แจ้งเตือน: กรุณาตรวจสอบข้อมูลฟอร์มให้ถูกต้อง]
+    FE_Reg_Check -- Email ไม่ถูกรูปแบบ --> AlertReg1
+    FE_Reg_Check -- รหัสผ่านไม่ตรงกัน --> AlertReg2[แจ้งเตือน: รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน]
+    FE_Reg_Check -- รหัสผ่านไม่ผ่านเงื่อนไข (ตัวเล็ก,ใหญ่,เลข,สัญลักษณ์, >=8 ตัว) --> AlertReg3[แจ้งเตือน: รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร...]
+    
+    FE_Reg_Check -- ข้อมูลถูกต้องทั้งหมด --> CallApiReg[ส่งข้อมูลไปที่ Backend api.register]
+    CallApiReg --> BE_Reg_Check{ระบบ Backend ตรวจสอบข้อมูล}
+
+    BE_Reg_Check -- Email มีในระบบแล้ว (Error 409) --> AlertRegBE[แจ้งเตือน: Registration failed / email is already registered]
+    BE_Reg_Check -- ผ่านเงื่อนไขทั้งหมด --> SaveDB[บันทึกข้อมูลผู้ใช้ลง Database]
+    SaveDB --> SuccessReg([แจ้งเตือนสมัครสำเร็จ และ Redirect ไปหน้า login.html])
+    SelectAction -- เลือก เข้าสู่ระบบ (Login) --> InputLog[กรอก Email และ Password]
+    InputLog --> FE_Log_Check{ระบบ Frontend ตรวจสอบข้อมูล}
+
+    FE_Log_Check -- Email ไม่ถูกรูปแบบ หรือ ไม่ได้กรอกรหัสผ่าน --> AlertLog1[แจ้งเตือน: Please enter a valid email and password.]
+    FE_Log_Check -- ข้อมูลถูกต้อง --> CallApiLog[ส่งข้อมูลไปที่ Backend api.login]
+    
+    CallApiLog --> BE_Log_Check{ระบบ Backend ตรวจสอบข้อมูล}
+
+    BE_Log_Check -- ค้นหาผู้ใช้ด้วย Email/Username ไม่พบ --> AlertLogBE[แจ้งเตือน: Login failed / email/username or password is incorrect]
+    BE_Log_Check -- รหัสผ่าน (Hash) ไม่ตรงกัน (Error 401) --> AlertLogBE
+    BE_Log_Check -- ผ่านเงื่อนไขทั้งหมด --> GenJWT[สร้าง JWT Token และอัปเดต last_login]
+    GenJWT --> SuccessLog([แจ้งเตือนเข้าสู่ระบบสำเร็จ และ Redirect ไปหน้า index.html])

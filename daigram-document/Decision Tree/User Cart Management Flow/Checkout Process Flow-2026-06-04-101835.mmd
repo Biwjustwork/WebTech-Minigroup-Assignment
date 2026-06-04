@@ -1,0 +1,31 @@
+---
+config:
+  theme: redux
+---
+flowchart TD
+    Start([ผู้ใช้กดปุ่ม 'เพิ่มลงตะกร้า']) --> CheckProduct{สินค้ามีในระบบหรือไม่?}
+    
+    CheckProduct -- ไม่มีสินค้า --> AlertError[แจ้งเตือน: ไม่พบข้อมูลสินค้า]
+    CheckProduct -- มีสินค้า --> CheckStock{สต็อกสินค้าคงเหลือเพียงพอไหม?}
+    
+    CheckStock -- สินค้าหมด / ไม่พอ --> AlertStock[แจ้งเตือน: สินค้าหมดสต็อก หรือจำนวนเกินกำหนด]
+    CheckStock -- สต็อกเพียงพอ --> CheckInCart{สินค้านี้มีอยู่ในตะกร้าแล้วหรือไม่?}
+    
+    CheckInCart -- มีอยู่แล้ว --> UpdateQty[บวกเพิ่มจำนวนสินค้าในรายการเดิม]
+    CheckInCart -- ยังไม่มี --> AddNew[เพิ่มเป็นสินค้ารายการใหม่ในตะกร้า]
+    
+    %% เพิ่ม Flow Recurring และย้าย CheckLogin มาตรงนี้
+    UpdateQty --> CheckRecurringOption{ต้องการเปลี่ยน OrderType \n เป็น Recurring ไหม?}
+    AddNew --> CheckRecurringOption
+    
+    CheckRecurringOption -- ใช่ --> CheckLogin{ผู้ใช้เข้าสู่ระบบหรือยัง?}
+    CheckRecurringOption -- ไม่ใช่ --> SaveData[บันทึกข้อมูลตะกร้า]
+    
+    CheckLogin -- เข้าระบบแล้ว --> SetRecurring[เปลี่ยน OrderType เป็น Recurring ได้]
+    SetRecurring --> SelectInterval[เลือกระยะเวลาของ Recurring]
+    SelectInterval --> SaveData
+    
+    CheckLogin -- ยังไม่เข้าระบบ --> AlertNotLogin[แจ้งเตือน: ไม่สามารถเปลี่ยนเป็น Recurring ได้ \n กรุณาเข้าสู่ระบบ]
+    AlertNotLogin --> SaveData
+    
+    SaveData --> Success([แจ้งเตือนเพิ่มลงตะกร้าสำเร็จ และอัปเดตไอคอนตะกร้า])

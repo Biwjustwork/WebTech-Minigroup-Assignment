@@ -1,0 +1,26 @@
+---
+config:
+  theme: redux
+---
+flowchart TD
+    Start([ผู้ใช้เข้าสู่หน้าต่าง Checkout]) --> CheckCart{ตะกร้าสินค้าว่างไหม?}
+    
+    CheckCart -- ว่างเปล่า --> AlertEmpty[แจ้งเตือน: ไม่มีสินค้าในตะกร้า]
+    CheckCart -- มีสินค้า --> CheckStock{สต็อกสินค้าทุกชิ้นพอไหม?}
+    
+    CheckStock -- สต็อกไม่พอ --> AlertStock[แจ้งเตือน: สินค้าบางรายการหมดสต็อก]
+    CheckStock -- สต็อกพอ --> CheckRecurring{มีสินค้าประเภท Recurring ไหม?}
+    CheckRecurring -- มี --> CalcRecurring[คำนวณส่วนลดสินค้านั้น 20 เปอร์เซ็นต์]
+    CheckRecurring -- ไม่มี --> CheckTotal{ราคารวม > 200$ ไหม?}
+    CalcRecurring --> CheckTotal
+    
+    CheckTotal -- ใช่ (> 200$) --> CalcTotalDiscount[คำนวณราคาทั้งหมดลด 10 เปอร์เซ็นต์]
+    CheckTotal -- ไม่ใช่ (<= 200$) --> CheckInputInfo{กรอกข้อมูลครบถ้วนและถูกต้องไหมเช่น ชื่อ, Email, Address, Payment}
+    CalcTotalDiscount --> CheckInputInfo
+    CheckInputInfo -- ไม่ครบ หรือ มีข้อมูลซ้ำ --> AlertInfo[แจ้งเตือน: แสดงข้อมูลที่ต้องกรอกเพิ่ม หรือ ข้อมูลที่ซ้ำ]
+    CheckInputInfo -- ครบถ้วน --> SaveOrder[บันทึกข้อมูลลง Order]
+    
+    SaveOrder --> CutStock[ทำการตัดสต็อกสินค้า]
+    
+    CutStock --> ClearCart[ล้างสินค้าออกจากตะกร้า]
+    ClearCart --> Success([แสดงหน้าความสำเร็จ])
