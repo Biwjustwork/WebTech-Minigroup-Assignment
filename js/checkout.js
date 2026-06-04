@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const items = cart?.data?.items || [];
         const summary = cart?.data?.summary || { subtotal: 0, discountTotal: 0, total: 0 };
 
+        // สร้าง HTML สำหรับรายการสินค้าแต่ละชิ้น
         tableBody.innerHTML = items.map((item) => {
             const frequency = item.frequency ? item.frequency.replace('_', '-') : '';
             const orderTypeHtml = item.orderType === 'recurring'
@@ -76,6 +77,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }).join('');
 
+        // 🌟 ดึงข้อมูลและตรวจสอบเงื่อนไขของส่วนลดต่างๆ
+        const hasRecurringDiscount = summary.discountTotal > 0;
+        const volumeDiscountAmount = summary.dynamicDiscount || 0;
+        const hasVolumeDiscount = volumeDiscountAmount > 0;
+        
+        // เช็คเหตุผลการลดเพื่อแสดงป้ายกำกับให้ถูกต้อง (10% หรือ 15%)
+        const dynamicDiscountLabel = summary.dynamicDiscountReason === 'cart_total_over_200_10_percent' ? '10%' : '15%';
+
+        // สร้าง HTML แถวสรุปยอด (Subtotal, ส่วนลด, Total)
         tableBody.insertAdjacentHTML('beforeend', `
             <tr>
                 <th scope="row"></th>
@@ -84,6 +94,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-3 text-center"></td>
                 <td class="py-3 text-center"><p class="mb-0 text-dark">$${summary.subtotal.toFixed(2)}</p></td>
             </tr>
+            
+            ${hasRecurringDiscount ? `
             <tr>
                 <th scope="row"></th>
                 <td class="py-3 text-center"><p class="mb-0 text-success">Recurring Discount</p></td>
@@ -91,6 +103,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-3 text-center"></td>
                 <td class="py-3 text-center"><p class="mb-0 text-success">-$${summary.discountTotal.toFixed(2)}</p></td>
             </tr>
+            ` : ''}
+
+            ${hasVolumeDiscount ? `
+            <tr>
+                <th scope="row"></th>
+                <td class="py-3 text-center"><p class="mb-0 text-success">Dynamic Discount (${dynamicDiscountLabel})</p></td>
+                <td class="py-3 text-center"></td>
+                <td class="py-3 text-center"></td>
+                <td class="py-3 text-center"><p class="mb-0 text-success">-$${volumeDiscountAmount.toFixed(2)}</p></td>
+            </tr>
+            ` : ''}
+
             <tr>
                 <th scope="row"></th>
                 <td class="py-3 text-center"><p class="mb-0 text-dark text-uppercase py-3">TOTAL</p></td>
