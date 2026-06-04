@@ -92,9 +92,19 @@ function renderUI(products, totalItems) {
     }
 
     let html = products.map(product => {
+        const isOutOfStock = product.stock_quantity <= 0;
+        const cardStyle = isOutOfStock ? 'style="opacity: 0.6; filter: grayscale(1);"' : '';
+        const buttonHtml = isOutOfStock
+            ? `<button class="btn border border-secondary border-3 rounded-pill px-3 text-secondary w-100" disabled>
+                  <i class="fa fa-ban me-2"></i> Out of stock
+               </button>`
+            : `<button class="btn border border-success border-3 rounded-pill px-3 text-success add-to-cart-btn w-100">
+                  <i class="fa fa-shopping-bag me-2"></i> Add to cart
+               </button>`;
+
         return `
             <div class="col-md-6 col-lg-6 col-xl-4 d-flex">
-                <div class="rounded position-relative fruite-item product-card d-flex flex-column w-100" data-id="${product.id}">
+                <div class="rounded position-relative fruite-item product-card d-flex flex-column w-100" data-id="${product.id}" ${cardStyle}>
                     <div class="fruite-img">
                         <img src="${product.image}" class="img-fluid w-100 rounded-top" alt="${product.name}" style="aspect-ratio: 1/1; object-fit: cover;" onerror="this.src='img/placeholder.jpg'">
                     </div>
@@ -118,9 +128,7 @@ function renderUI(products, totalItems) {
                             </div>
 
                             <div class="d-flex justify-content-between flex-lg-wrap">
-                                <button class="btn border border-success border-3 rounded-pill px-3 text-success add-to-cart-btn w-100">
-                                    <i class="fa fa-shopping-bag me-2"></i> Add to cart
-                                </button>
+                                ${buttonHtml}
                             </div>
                         </div>
                     </div>
