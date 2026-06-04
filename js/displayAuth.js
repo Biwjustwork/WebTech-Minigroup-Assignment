@@ -21,37 +21,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const authPopup = document.getElementById('authProfilePopup');
 
     function updateAuthPopupUI() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        // เช็คสถานะการล็อกอินและวันหมดอายุของ Token ไปในตัว
+        const isLoggedIn = window.EcoApi.isAuthenticated(); 
+        // ดึงข้อมูล User Profile จาก Payload ของ JWT โดยตรง
+        const currentUser = window.EcoApi.getCurrentUser();
         const idEl = document.getElementById('displayAuthId');
         const nameEl = document.getElementById('displayAuthName');
         const emailEl = document.getElementById('displayAuthEmail');
         const actionContainer = document.getElementById('authActionContainer');
 
         if (isLoggedIn && currentUser) {
-            idEl.textContent = (currentUser.user_id || currentUser.id || '-').toLowerCase();
-            nameEl.textContent = currentUser.username || 'Member';
+            // 🌟 แก้ไขจุดนี้: ใช้ Logical OR (||) ไล่ตรวจสอบคีย์ยอดนิยม (id, userId, sub) 
+            // เพื่อให้มั่นใจว่าจะดึง ID ออกมาจาก Token ได้แน่นอน ไม่ว่าหลังบ้านจะตั้งชื่อคีย์อะไรมา
+            idEl.textContent = currentUser.id || currentUser.userId || currentUser.sub || '-';
+            
+            nameEl.textContent = currentUser.username || currentUser.name || 'User';
             emailEl.textContent = currentUser.email || '-';
+            
             actionContainer.innerHTML = `
-                <button id="btnLogout" class="btn btn-outline-danger btn-sm border-2 w-100 rounded-pill fw-bold py-2 shadow-sm">
-                    <i class="fas fa-sign-out-alt me-1"></i>Logout
-                </button>
+                <div class="d-grid gap-2">
+                    <button id="logoutBtn" class="btn btn-danger btn-sm border-danger border-2 w-100 rounded-pill fw-bold py-2 text-white shadow-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </button>
+                </div>
             `;
 
-            document.getElementById('btnLogout').addEventListener('click', () => {
-                if (window.EcoApi) {
-                    window.EcoApi.clearAuthSession();
-                } else {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('currentUser');
-                }
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                // เรียกฟังก์ชันเคลียร์เซสชันส่วนกลางจาก apiClient
+                window.EcoApi.clearAuthSession();
                 authPopup.classList.add('d-none');
                 window.location.href = 'index.html';
             });
             return;
         }
 
+        // สถานะ Guest (ไม่ได้ล็อกอิน)
         idEl.textContent = '-';
         nameEl.textContent = 'Guest';
         emailEl.textContent = '-';

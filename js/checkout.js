@@ -40,10 +40,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    // 🌟 เปลี่ยนมาใช้ฟังก์ชันแกะข้อมูลผู้ใช้จาก JWT Token ของ window.EcoApi
+    const currentUser = window.EcoApi.getCurrentUser();
+
     if (currentUser) {
-        if (nameInput) nameInput.value = currentUser.username || '';
+        // ใช้คำสั่งเพื่อป้องกันกรณีหลังบ้านบันทึกเป็นคีย์ชื่อ username หรือ name
+        if (nameInput) nameInput.value = currentUser.username || currentUser.name || '';
         if (emailInput) emailInput.value = currentUser.email || '';
+
+        // 🔥 แนะนำเพิ่มเติม (Best Practice ด้าน UX/Security):
+        // เมื่อยูสเซอร์ล็อกอินแล้ว ไม่ควรปล่อยให้เขาแก้ไขชื่อและอีเมลในหน้า Checkout 
+        // เพื่อป้องกันข้อมูลผู้ซื้อขัดแย้งกับสิทธิ์ของ Token บนเซิร์ฟเวอร์
+        if (nameInput) nameInput.readOnly = true;
+        if (emailInput) emailInput.readOnly = true;
     }
 
     function renderCheckout(cart) {
@@ -126,8 +135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            placeOrderBtn.disabled = true;
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            // 🌟 เปลี่ยนมาใช้ฟังก์ชันเช็คสถานะจาก JWT ที่เราสร้างไว้ใน apiClient
+            const isLoggedIn = window.EcoApi.isAuthenticated(); 
             const payload = {
                 address: addressInput.value.trim()
             };
