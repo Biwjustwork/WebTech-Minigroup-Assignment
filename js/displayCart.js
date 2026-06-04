@@ -21,10 +21,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!summaryContainer) return;
         
         const hasRecurring = items.some(item => item.orderType === 'recurring');
-        
-        // 🌟 เปลี่ยนมารับค่ายอดส่วนลดจาก Backend โดยตรง! (ถ้ายอดไม่ถึง 200 หลังบ้านจะส่งมาเป็น 0)
         const volumeDiscountAmount = summary.dynamicDiscount || 0;
         const hasVolumeDiscount = volumeDiscountAmount > 0;
+
+        // 🌟 สร้างตัวแปรดักข้อความ UI ให้ตรงกับ Reason ที่มาจาก Backend
+        let discountLabel = '10%';
+        let discountDesc = '';
+        
+        if (summary.dynamicDiscountReason === 'cart_total_over_200_10_percent') {
+            discountLabel = '10%';
+            discountDesc = '(Orders with a value over $200.)';
+        } else if (summary.dynamicDiscountReason === 'cart_over_200_and_zero_waste_15_percent') {
+            discountLabel = '15%';
+            discountDesc = '(Orders over $200 including Zero Waste items.)';
+        } else if (summary.dynamicDiscountReason === 'zero_waste_more_than_3_items_15_percent') {
+            discountLabel = '15%';
+            discountDesc = '(More than 3 items from Zero Waste category.)';
+        }
 
         summaryContainer.innerHTML = `
             <div class="p-4">
@@ -42,10 +55,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 ${hasVolumeDiscount ? `
                 <div class="d-flex justify-content-between ">
-                    <h5 class="mb-0 me-4 text-success">Dynamic Discount (${summary.dynamicDiscountReason === 'cart_total_over_200_10_percent' ? '10%' : '15%'}):</h5>
+                    <h5 class="mb-0 me-4 text-success">Dynamic Discount (${discountLabel}):</h5>
                     <p class="mb-0 text-success">-$${volumeDiscountAmount.toFixed(2)}</p>
                 </div>
-                <div class="d-flex justify-content-between mb-4"><p><small>(Orders with a value of $200.)</small></p></div>
+                <div class="d-flex justify-content-between mb-4">
+                    <p><small>${discountDesc}</small></p>
+                </div>
                 ` : ''}
 
                 <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
@@ -133,6 +148,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function updateItem(productId, changes) {
         const currentItem = cartResponse.data.items.find((item) => item.productId === productId);
         if (!currentItem) return;
+
+        // ตรวจเช็กเพื่อป้องกันการเพิ่มจำนวนสินค้าเกินกว่าสต็อกที่เหลืออยู่
+        if (changes.quantity !== undefined && changes.quantity > currentItem.product.stock_quantity) {
+            alert(`Cannot update quantity. Only ${currentItem.product.stock_quantity} left in stock.`);
+            return;
+        }
 
         const nextItem = {
             productId,
