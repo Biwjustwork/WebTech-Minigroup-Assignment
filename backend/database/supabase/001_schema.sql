@@ -277,13 +277,15 @@ begin
     payment_id,
     order_id,
     payment_method,
-    payment_status
+    payment_status,
+    transaction_ref
   )
   values (
     p_payment_id,
     p_order->>'order_id',
-    'bypassed',
-    'bypassed'
+    coalesce(p_order->>'payment_method', 'bypassed'),
+    coalesce(p_order->>'payment_status', 'bypassed'),
+    p_order->>'transaction_ref'
   );
 
   if p_cart_id is not null then

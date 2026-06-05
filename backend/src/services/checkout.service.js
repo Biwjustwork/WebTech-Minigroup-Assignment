@@ -28,9 +28,16 @@ function validateCheckoutPayload(payload, user) {
   const address = String(payload.address || '').trim();
   const guestName = String(payload.guestName || payload.guest_name || '').trim();
   const guestEmail = String(payload.guestEmail || payload.guest_email || '').trim().toLowerCase();
+  const paymentMethod = String(payload.paymentMethod || 'bypassed').trim();
+  const transactionRef = payload.transactionRef ? String(payload.transactionRef).trim() : null;
 
   if (!address) {
     throw createHttpError(400, 'INVALID_CHECKOUT', 'address is required.');
+  }
+
+  const validPaymentMethods = ['bypassed', 'bank_transfer', 'credit_card', 'cod'];
+  if (!validPaymentMethods.includes(paymentMethod)) {
+    throw createHttpError(400, 'INVALID_CHECKOUT', `paymentMethod must be one of: ${validPaymentMethods.join(', ')}`);
   }
 
   if (!user) {
@@ -43,7 +50,15 @@ function validateCheckoutPayload(payload, user) {
     }
   }
 
-  return { address, guestEmail, guestName };
+  // Determine paymentStatus based on paymentMethod
+  let paymentStatus = 'bypassed';
+  if (paymentMethod === 'cod') {
+    paymentStatus = 'pending';
+  } else if (paymentMethod === 'bank_transfer' || paymentMethod === 'credit_card') {
+    paymentStatus = 'completed';
+  }
+
+  return { address, guestEmail, guestName, paymentMethod, paymentStatus, transactionRef };
 }
 
 async function loadCartItems({ user, sessionId }) {
@@ -185,7 +200,10 @@ async function processCheckout({ user, payload, sessionId }) {
       subscription_discount_amount: discountTotal,
       dynamic_discount_amount: dynamicPricing.dynamicDiscount,
       dynamic_discount_reason: dynamicPricing.dynamicDiscountReason,
-      total_amount: total
+      total_amount: total,
+      payment_method: checkoutDetails.paymentMethod,
+      payment_status: checkoutDetails.paymentStatus,
+      transaction_ref: checkoutDetails.transactionRef
     },
     p_items: lineItems.map((item) => ({
       order_item_id: item.orderItemId,
@@ -210,7 +228,7 @@ async function processCheckout({ user, payload, sessionId }) {
     data: {
       orderId,
       status: 'placed',
-      paymentStatus: 'bypassed',
+      paymentStatus: checkoutDetails.paymentStatus,
       userId: user?.user_id || null,
       isGuestCheckout: !user,
       items: lineItems,

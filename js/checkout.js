@@ -161,8 +161,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // 🌟 เปลี่ยนมาใช้ฟังก์ชันเช็คสถานะจาก JWT ที่เราสร้างไว้ใน apiClient
             const isLoggedIn = window.EcoApi.isAuthenticated(); 
+            const paymentMethodMap = {
+                'direct-bank-transfer': 'bank_transfer',
+                'cash-on-delivery': 'cod',
+                'credit-card': 'credit_card'
+            };
+            const rawPaymentMethod = paymentSelect ? paymentSelect.value : '';
+            const paymentMethod = paymentMethodMap[rawPaymentMethod] || 'bypassed';
+            const transactionRef = (extraPaymentInput && !extraPaymentContainer.classList.contains('d-none')) 
+                ? extraPaymentInput.value.trim() 
+                : null;
+
             const payload = {
-                address: addressInput.value.trim()
+                address: addressInput.value.trim(),
+                paymentMethod,
+                transactionRef
             };
 
             if (!isLoggedIn) {
