@@ -202,29 +202,29 @@
                             <h1>Our Sustainable Refills</h1>
                         </div>
                         <div class="col-lg-7 text-end">
-                            <ul class="nav nav-pills d-inline-flex text-center mb-5">
+                            <ul class="nav nav-pills d-inline-flex text-center mb-5" id="category-tabs">
                                 <li class="nav-item">
-                                    <a class="d-flex m-2 py-2 bg-light rounded-pill active" data-bs-toggle="pill" href="#tab-1">
+                                    <a class="d-flex m-2 py-2 bg-light rounded-pill active" data-category="all" style="cursor: pointer;">
                                         <span class="text-dark" style="width: 130px;">All Products</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="d-flex py-2 m-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-2">
+                                    <a class="d-flex py-2 m-2 bg-light rounded-pill" data-category="Kitchen" style="cursor: pointer;">
                                         <span class="text-dark" style="width: 130px;">Kitchen</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="d-flex m-2 py-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-3">
+                                    <a class="d-flex m-2 py-2 bg-light rounded-pill" data-category="Laundry" style="cursor: pointer;">
                                         <span class="text-dark" style="width: 130px;">Laundry</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="d-flex m-2 py-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-4">
+                                    <a class="d-flex m-2 py-2 bg-light rounded-pill" data-category="Bathroom" style="cursor: pointer;">
                                         <span class="text-dark" style="width: 130px;">Bathroom</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="d-flex m-2 py-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-5">
+                                    <a class="d-flex m-2 py-2 bg-light rounded-pill" data-category="Accessories" style="cursor: pointer;">
                                         <span class="text-dark" style="width: 130px;">Accessories</span>
                                     </a>
                                 </li>
@@ -235,143 +235,8 @@
                         <div id="tab-1" class="tab-pane fade show p-0 active">
                             <div class="row g-4">
                                 <div class="col-lg-12">
-                                    <div class="row g-4">
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_04">
-                                                <div class="fruite-img">
-                                                    <img src="img/Concentrated Cleaning Tablets.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Kitchen</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Multi-Surface Tablets</h4>
-                                                    <p>Non-toxic cleaning tablets. Just drop in water. Zero plastic waste.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$9.99</del> $7.99/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_04')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_05">
-                                                <div class="fruite-img">
-                                                    <img src="img/Laundry Detergent Sheets.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Laundry</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Laundry Sheets</h4>
-                                                    <p>Pre-measured, liquidless laundry detergent. Eco-friendly packaging.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$14.99</del> $11.99/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_05')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_03">
-                                                <div class="fruite-img">
-                                                    <img src="img/Dish Washing Soap Block.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Kitchen</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Dish Soap Block</h4>
-                                                    <p>Powerful grease-cutting vegan dish soap. Lasts up to 3 months.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 15%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$12.00</del> $10.20/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_03')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_06">
-                                                <div class="fruite-img">
-                                                    <img src="img/Compostable Trash Bags.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Kitchen</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Compostable Bags</h4>
-                                                    <p>100% plant-based trash bags. Fully biodegradable and strong.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$8.99</del> $7.19/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_06')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_07">
-                                                <div class="fruite-img">
-                                                    <img src="img/Bamboo Dish Brush.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Accessories</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Bamboo Dish Brush</h4>
-                                                    <p>Replaceable sisal bristle heads with a reusable bamboo handle.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe (Heads): Save 20%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$6.50</del> $5.20/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_07')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_04">
-                                                <div class="fruite-img">
-                                                    <img src="img/Eco-Friendly All-Purpose Cleaner.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Bathroom</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>All-Purpose Cleaner</h4>
-                                                    <p>Tough on dirt, safe for families. Delivered in glass refill bottles.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 20%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$10.99</del> $8.79/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_04')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_05">
-                                                <div class="fruite-img">
-                                                    <img src="img/Swedish Sponge Cloths.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Accessories</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Sponge Cloths</h4>
-                                                    <p>Replaces 17 rolls of paper towels. Washable and compostable.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe: Save 15%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$15.00</del> $12.75/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_05')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
-                                            <div class="rounded position-relative fruite-item" data-id="prod_06">
-                                                <div class="fruite-img">
-                                                    <img src="img/Coconut Coir Toilet Brush Set.jpg" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">Bathroom</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>Coconut Toilet Brush</h4>
-                                                    <p>Naturally antibacterial coconut coir bristles. 100% plastic-free.</p>
-                                                    <p class="text-success mb-2 fw-bold"><i class="fas fa-sync-alt"></i> Subscribe (Heads): Save 20%</p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0"><del class="text-muted fs-6">$9.00</del> $7.20/mo</p>
-                                                        <button type="button" class="btn add-to-cart-btn border border-secondary rounded-pill px-3 text-success" onclick="addToCart('prod_06')"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="row g-4" id="home-product-list">
+                                        <!-- Products will be dynamically loaded here by js/displayHome.js -->
                                     </div>
                                 </div>
                             </div>
@@ -393,7 +258,7 @@
                                 <img src="img/Eco-Friendly All-Purpose Cleaner.jpg" class="img-fluid rounded-top w-100" alt="">
                                 <div class="px-4 rounded-bottom">
                                     <div class="service-content bg-success text-center p-4 rounded">
-                                        <h5 class="text-white">Starter Kits</h5>
+                                        <h5 class="text-white">Recurring Customers</h5>
                                         <h3 class="mb-0">20% OFF</h3>
                                     </div>
                                 </div>
@@ -420,7 +285,7 @@
                                 <div class="px-4 rounded-bottom">
                                     <div class="service-content bg-secondary text-center p-4 rounded">
                                         <h5 class="text-white">Zero-Waste Tools</h5>
-                                        <h3 class="mb-0">Up to $30 Off</h3>
+                                        <h3 class="mb-0">more than 3 get 15% OFF</h3>
                                     </div>
                                 </div>
                             </div>
@@ -432,127 +297,7 @@
         <!-- Featurs End -->
 
 
-        <!-- Vesitable Shop Start-->
-        <div class="container-fluid vesitable py-5">
-            <div class="container py-5">
-                <h1 class="mb-0">Fresh Organic Vegetables</h1>
-                <div class="owl-carousel vegetable-carousel justify-content-center">
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-6.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-1.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$4.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-3.png" class="img-fluid w-100 rounded-top bg-light" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Banana</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-4.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Bell Papper</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-5.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Potatoes</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-6.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-5.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Potatoes</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-success rounded position-relative vesitable-item">
-                        <div class="vesitable-img">
-                            <img src="img/vegetable-item-6.jpg" class="img-fluid w-100 rounded-top" alt="">
-                        </div>
-                        <div class="text-white bg-success px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
-                        <div class="p-4 rounded-bottom">
-                            <h4>Parsely</h4>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
-                            <div class="d-flex justify-content-between flex-lg-wrap">
-                                <p class="text-dark fs-5 fw-bold mb-0">$7.99 / kg</p>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Vesitable Shop End -->
+
 
 
         <!-- Banner Section Start-->
@@ -585,212 +330,7 @@
         <!-- Banner Section End -->
 
 
-        <!-- Bestsaler Product Start -->
-        <div class="container-fluid py-5">
-            <div class="container py-5">
-                <div class="text-center mx-auto mb-5" style="max-width: 700px;">
-                    <h1 class="display-4">Bestseller Products</h1>
-                    <p>Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable.</p>
-                </div>
-                <div class="row g-4">
-                    <div class="col-lg-6 col-xl-4">
-                        <div class="p-4 rounded bg-light">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <img src="img/best-product-1.jpg" class="img-fluid rounded-circle w-100" alt="">
-                                </div>
-                                <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
-                                    <div class="d-flex my-3">
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl-4">
-                        <div class="p-4 rounded bg-light">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <img src="img/best-product-2.jpg" class="img-fluid rounded-circle w-100" alt="">
-                                </div>
-                                <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
-                                    <div class="d-flex my-3">
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl-4">
-                        <div class="p-4 rounded bg-light">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <img src="img/best-product-3.jpg" class="img-fluid rounded-circle w-100" alt="">
-                                </div>
-                                <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
-                                    <div class="d-flex my-3">
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl-4">
-                        <div class="p-4 rounded bg-light">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <img src="img/best-product-4.jpg" class="img-fluid rounded-circle w-100" alt="">
-                                </div>
-                                <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
-                                    <div class="d-flex my-3">
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl-4">
-                        <div class="p-4 rounded bg-light">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <img src="img/best-product-5.jpg" class="img-fluid rounded-circle w-100" alt="">
-                                </div>
-                                <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
-                                    <div class="d-flex my-3">
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-xl-4">
-                        <div class="p-4 rounded bg-light">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <img src="img/best-product-6.jpg" class="img-fluid rounded-circle w-100" alt="">
-                                </div>
-                                <div class="col-6">
-                                    <a href="#" class="h5">Organic Tomato</a>
-                                    <div class="d-flex my-3">
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star text-success"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <h4 class="mb-3">3.12 $</h4>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
-                        <div class="text-center">
-                            <img src="img/fruite-item-1.jpg" class="img-fluid rounded" alt="">
-                            <div class="py-4">
-                                <a href="#" class="h5">Organic Tomato</a>
-                                <div class="d-flex my-3 justify-content-center">
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
-                        <div class="text-center">
-                            <img src="img/fruite-item-2.jpg" class="img-fluid rounded" alt="">
-                            <div class="py-4">
-                                <a href="#" class="h5">Organic Tomato</a>
-                                <div class="d-flex my-3 justify-content-center">
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
-                        <div class="text-center">
-                            <img src="img/fruite-item-3.jpg" class="img-fluid rounded" alt="">
-                            <div class="py-4">
-                                <a href="#" class="h5">Organic Tomato</a>
-                                <div class="d-flex my-3 justify-content-center">
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
-                        <div class="text-center">
-                            <img src="img/fruite-item-4.jpg" class="img-fluid rounded" alt="">
-                            <div class="py-2">
-                                <a href="#" class="h5">Organic Tomato</a>
-                                <div class="d-flex my-3 justify-content-center">
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star text-success"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <h4 class="mb-3">3.12 $</h4>
-                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-success"><i class="fa fa-shopping-bag me-2 text-success"></i> Add to cart</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Bestsaler Product End -->
+
 
 
         <!-- Fact Start -->
@@ -1018,6 +558,7 @@
     <script src="js/main.js"></script>
     <script src="js/displayAuth.js"></script>
     <script src="js/cartSystem.js"></script>
+    <script src="js/displayHome.js"></script>
     </body>
 
 </html>
